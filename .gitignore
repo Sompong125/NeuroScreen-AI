@@ -52,7 +52,7 @@ desktop.ini
 *.parquet
 
 # Model files (ใหญ่ — ใช้ Git LFS แทน)
-#*.keras
+*.keras
 *.h5
 *.pt
 *.pth
