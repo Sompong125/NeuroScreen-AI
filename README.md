@@ -1,48 +1,275 @@
 # NeuroScreen AI
 
-**An AI-assisted EEG screening research prototype for ADHD risk assessment.**
+> **EEG-based ADHD Screening Support — Research Prototype**
 
-## Overview
+NeuroScreen AI เป็นโครงงานต้นแบบสำหรับศึกษาการใช้ Deep Learning วิเคราะห์สัญญาณคลื่นไฟฟ้าสมอง (EEG) เพื่อช่วยประเมินรูปแบบที่อาจเกี่ยวข้องกับ ADHD โดยมีเป้าหมายเพื่อสรุปผลให้อยู่ในรูปแบบที่เข้าใจง่ายและใช้เป็นข้อมูลประกอบการพิจารณาของผู้เชี่ยวชาญ
 
-NeuroScreen AI is a research project exploring the use of artificial intelligence to analyze electroencephalogram (EEG) signals and support preliminary ADHD risk assessment.
+---
 
-The system is intended to help organize analysis results into an understandable format for review by qualified professionals.
+## ⚠️ Disclaimer — ข้อจำกัดความรับผิดชอบ
 
-## Project Goals
+**NeuroScreen AI เป็น Research Prototype สำหรับการศึกษาและการวิจัยเท่านั้น**
 
-- Process and validate uploaded EEG data.
-- Analyze EEG-derived features using a trained AI model.
-- Present the analysis results in a user-friendly interface.
-- Support expert review rather than replace professional assessment.
+- ระบบนี้ **ไม่ใช่เครื่องมือวินิจฉัยทางการแพทย์** และไม่ได้รับการยืนยันความถูกต้องสำหรับการใช้งานทางคลินิก
+- ห้ามใช้ผลลัพธ์จากโมเดลเพื่อยืนยันว่าบุคคลเป็นหรือไม่เป็น ADHD
+- ระบบไม่สามารถใช้แทนการประเมิน การวินิจฉัย หรือคำแนะนำจากแพทย์และผู้เชี่ยวชาญได้
+- ผลลัพธ์จาก AI เป็นเพียงผลจากโมเดลทดลอง ไม่ใช่ข้อสรุปทางการแพทย์
+- หากมีข้อกังวลเกี่ยวกับพัฒนาการ สมาธิ หรือพฤติกรรม ควรปรึกษาผู้เชี่ยวชาญด้านสุขภาพที่เกี่ยวข้อง
 
-## Project Structure
+---
 
-```text
-NeuroScreen-AI/
-├── app.py
-├── src/
-│   ├── day10_02_inference_pipeline.py
-│   └── ui_components.py
-├── tests/
-│   ├── day10_02_pipeline_test.py
-│   └── day10_03_app_test.py
-├── docs/
-├── assets/
-├── models/
-└── .streamlit/
-    └── config.toml
+## 📖 Overview — ภาพรวมโปรเจกต์
+
+NeuroScreen AI ศึกษาความเป็นไปได้ในการใช้ Deep Learning วิเคราะห์ข้อมูล EEG เพื่อจำแนกข้อมูลในชุดทดลองระหว่างกลุ่ม ADHD และกลุ่ม Control ระบบออกแบบให้เป็นตัวกลางช่วยประมวลผลและสรุปผลจากข้อมูล EEG เพื่อให้ผู้เชี่ยวชาญตรวจสอบและนำไปประกอบการประเมินได้สะดวกขึ้น
+
+### สิ่งที่ระบบทำ
+
+- รับไฟล์ EEG ในรูปแบบ CSV ตามรูปแบบที่ระบบกำหนด
+- ตรวจสอบและเตรียมข้อมูลก่อนส่งเข้าโมเดล
+- ประมวลผล EEG ด้วยขั้นตอน preprocessing ที่สอดคล้องกับขั้นตอนที่ใช้ในการฝึกโมเดล
+- วิเคราะห์ข้อมูลด้วยโมเดล Deep Learning ที่พัฒนาสำหรับโครงงาน
+- สรุปผลการวิเคราะห์ในรูปแบบที่อ่านและทำความเข้าใจได้ง่าย
+- ประมวลผลข้อมูลในหน่วยความจำตามการออกแบบของระบบ โดยไม่บันทึกหรือส่งต่อไฟล์ EEG ที่อัปโหลด
+
+### สิ่งที่ระบบไม่ทำ
+
+- ไม่วินิจฉัย ADHD หรือภาวะทางการแพทย์ใด ๆ
+- ไม่แทนที่การประเมินโดยแพทย์หรือผู้เชี่ยวชาญ
+- ไม่รับประกันความแม่นยำสำหรับบุคคลหรือข้อมูลจากแหล่งอื่น
+- ไม่ควรใช้เป็นฐานในการตัดสินใจรักษาเพียงอย่างเดียว
+
+---
+
+## 🧠 Dataset — ชุดข้อมูล
+
+โครงงานอ้างอิงชุดข้อมูล **EEG data for ADHD / Control children** จาก Shahed University ซึ่งเผยแพร่ผ่าน IEEE DataPort
+
+| รายการ | รายละเอียด |
+|---|---|
+| จำนวนผู้เข้าร่วมทั้งหมด | 121 คน |
+| กลุ่ม ADHD | 61 คน |
+| กลุ่ม Control | 60 คน |
+| อายุ | 7–12 ปี |
+| จำนวน EEG channels | 19 ช่อง |
+| Sampling rate | 128 Hz |
+| กิจกรรมขณะบันทึก EEG | Visual Attention Task — ดูภาพการ์ตูนและนับจำนวนตัวละคร |
+| แหล่งข้อมูล | IEEE DataPort |
+
+แหล่งอ้างอิงชุดข้อมูล: [IEEE DataPort — EEG data for ADHD / Control children](https://doi.org/10.21227/rzfh-zn36)
+
+> **หมายเหตุ:** จำนวนผู้เข้าร่วมในชุดข้อมูลทั้งหมดไม่ใช่จำนวนตัวอย่างในชุดทดสอบของโมเดลโดยอัตโนมัติ ควรอ้างอิงผลการแบ่งข้อมูลและการประเมินจากโค้ดทดลองจริง
+
+---
+
+## 🚀 Installation & Setup — การติดตั้ง
+
+### 1. Clone Repository
+
+แทนที่ `<REPOSITORY_URL>` ด้วย URL ของ GitHub repository จริง
+
+```bash
+git clone <REPOSITORY_URL>
+cd <REPOSITORY_DIRECTORY>
 ```
 
-## Current Status
+### 2. สร้าง Environment และติดตั้ง Dependencies
 
-This repository contains the application code and test files prepared for the Day 10 product development stage.
+แนะนำให้ใช้ Python environment แยกสำหรับโครงงาน ตรวจสอบเวอร์ชัน Python และ dependencies ที่รองรับกับไฟล์โครงการก่อนติดตั้ง
 
-Model files and research datasets may need to be configured separately before the application can run.
+```bash
+python -m venv .venv
+```
 
-## Important Notice
+เปิดใช้งาน environment:
 
-NeuroScreen AI is a research prototype, not a medical diagnostic tool. Its outputs must not be used as a substitute for diagnosis or professional medical advice.
+**Windows (PowerShell)**
 
-## Setup
+```powershell
+.venv\Scripts\Activate.ps1
+```
 
-Python dependencies and model configuration must be confirmed before running the application. Setup instructions will be updated after the required packages and model files have been verified.
+**macOS / Linux**
+
+```bash
+source .venv/bin/activate
+```
+
+หาก repository มีไฟล์ `requirements.txt` ให้ติดตั้งแพ็กเกจด้วยคำสั่ง:
+
+```bash
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+> หากไม่มี `requirements.txt` อย่าติดตั้งแพ็กเกจจากรายการที่คาดเดาเอง ให้ตรวจสอบ dependencies ที่โค้ดของโครงการใช้งานจริงก่อน
+
+### 3. ดาวน์โหลดและติดตั้งโมเดล
+
+ไฟล์โมเดล `.keras` อาจไม่ได้เก็บไว้ใน Git repository หากมีขนาดใหญ่ ให้ดาวน์โหลดไฟล์จากหน้า Releases ของ repository เมื่อผู้พัฒนาเผยแพร่ไฟล์แล้ว
+
+ตำแหน่งไฟล์โมเดลที่ระบบคาดว่าจะใช้:
+
+```text
+src/day8_Model/day8_02/day8_02_improved_model.keras
+```
+
+หลังดาวน์โหลด ให้วางไฟล์ไว้ในตำแหน่งดังกล่าวและตรวจสอบว่าชื่อไฟล์ตรงกับที่โค้ดเรียกใช้
+
+- ลิงก์ Releases: **[เพิ่ม URL ของหน้า Releases ที่นี่]**
+- หากยังไม่มีไฟล์โมเดลหรือหน้า Releases ระบบอาจไม่สามารถวิเคราะห์ข้อมูลได้
+- โมเดลหรือไฟล์ผลการทดลองอื่น ๆ ควรใช้ตามคำแนะนำใน repository เท่านั้น
+
+---
+
+## ▶️ Usage — วิธีใช้งาน
+
+### รันแอปพลิเคชัน
+
+จากโฟลเดอร์หลักของ repository ให้รัน:
+
+```bash
+streamlit run app.py
+```
+
+จากนั้นเปิดเบราว์เซอร์ที่:
+
+```text
+http://localhost:8501
+```
+
+### ขั้นตอนการใช้งาน
+
+1. เปิดเมนู **EEG Input**
+2. อัปโหลดไฟล์ EEG `.csv` ที่ตรงกับรูปแบบข้อมูลที่ระบบรองรับ
+3. กดปุ่ม **▶ รันการวิเคราะห์**
+4. ดูผลลัพธ์ที่หน้า **Results**
+5. ใช้ผลลัพธ์เพื่อศึกษาการทำงานของโมเดลเท่านั้น ไม่ใช้แทนการประเมินโดยผู้เชี่ยวชาญ
+
+### รูปแบบข้อมูลที่รองรับ
+
+- รูปแบบไฟล์: CSV ที่เข้ารหัส UTF-8
+- Sampling rate: 128 Hz
+- จำนวนช่องสัญญาณ: 19 EEG channels
+- ความยาวขั้นต่ำ: 512 samples หรือ 4 วินาที
+- ข้อมูลต้องเป็นตัวเลขและไม่มีค่าว่าง, `NaN` หรือ `Inf`
+
+ชื่อคอลัมน์ที่ระบุไว้สำหรับ input pipeline:
+
+```text
+Fp1, Fp2, F3, F4, C3, C4, P3, P4, O1, O2, F7, F8, T7, T8, P7, P8, Fz, Cz, Pz
+```
+
+> **สำคัญ:** ชื่อและลำดับคอลัมน์ต้องตรงกับที่ inference pipeline ตรวจสอบจริง ก่อนใช้งานควรตรวจสอบกับโค้ด preprocessing และตัวอย่าง CSV ของโครงการ หากไฟล์ EEG มาจากอุปกรณ์หรือชุดข้อมูลอื่น อาจต้องแปลงรูปแบบก่อน
+
+---
+
+## 📂 Project Structure — โครงสร้างโปรเจกต์
+
+โครงสร้างหลักที่อ้างอิงจากองค์ประกอบของโครงการมีดังนี้:
+
+```text
+.
+├── app.py
+├── src/
+│   ├── day5_preprocessing/
+│   ├── day6_split/
+│   ├── day7_cnn/
+│   ├── day8_Model/
+│   │   └── day8_02/
+│   │       └── day8_02_improved_model.keras
+│   ├── day9_Robustness_Validation/
+│   └── day10_02_inference_pipeline.py
+└── tests/
+    ├── day10_02_pipeline_test.py
+    ├── day10_03_app_test.py
+    └── test_csc/
+```
+
+| ไฟล์/โฟลเดอร์ | หน้าที่ |
+|---|---|
+| `app.py` | แอปพลิเคชันเว็บที่พัฒนาด้วย Streamlit |
+| `src/day10_02_inference_pipeline.py` | ขั้นตอนประมวลผลข้อมูลและส่งข้อมูลเข้าโมเดลเพื่ออนุมานผล |
+| `src/day5_preprocessing/` | โค้ดเตรียมและแปลงข้อมูลก่อนนำไปใช้ |
+| `src/day6_split/` | โค้ดที่เกี่ยวข้องกับการแบ่งข้อมูล |
+| `src/day7_cnn/` | โค้ดสำหรับพัฒนาโมเดล CNN |
+| `src/day8_Model/` | โค้ดและไฟล์ที่เกี่ยวข้องกับการฝึกหรือประเมินโมเดล |
+| `src/day9_Robustness_Validation/` | การทดสอบความทนทานของโมเดล |
+| `tests/` | ชุดทดสอบระบบและ pipeline |
+| `tests/test_csc/` | ไฟล์ CSV สำหรับทดสอบการจัดการข้อมูลผิดรูปแบบ หากมีอยู่ใน repository |
+
+> รายการข้างต้นเป็นโครงสร้างที่อ้างอิงจากเอกสารโครงการ ควรตรวจสอบกับไฟล์ใน repository จริงก่อนเผยแพร่ README
+
+---
+
+## ⚙️ Technical Specifications — ข้อมูลทางเทคนิค
+
+| รายการ | รายละเอียด |
+|---|---|
+| Model | Improved CNN |
+| จำนวนพารามิเตอร์โดยประมาณ | 107K |
+| Input | EEG 19 channels, 128 Hz |
+| Segment size | 512 samples (4 วินาที) |
+| Segment overlap | ไม่ซ้อนทับกัน |
+| Notch filter | 50 Hz, Q = 30 |
+| Standardization | Standardization แยกตาม channel |
+| Spectrogram | `scipy.signal.spectrogram` |
+| Spectrogram parameters | `nperseg=128`, `noverlap=64`, `scaling='density'`, `mode='psd'` |
+| Aggregation | ค่าเฉลี่ยความน่าจะเป็นจากแต่ละ segment ในระดับ participant |
+| Classification threshold | 0.5 |
+
+พารามิเตอร์ข้างต้นควรคงให้สอดคล้องกันระหว่างการฝึกโมเดลและการนำโมเดลไปใช้งานจริง หากเปลี่ยน preprocessing หรือ threshold ผลลัพธ์อาจเปลี่ยนแปลงได้
+
+---
+
+## 📝 Limitations — ข้อจำกัด
+
+1. **ชุดทดสอบมีขนาดเล็ก:** เอกสารโครงการระบุชุดทดสอบ 18 คน แบ่งเป็น ADHD 9 คน และ Control 9 คน
+2. **ยังไม่มี External Validation:** ยังไม่มีหลักฐานยืนยันว่าโมเดลทำงานได้ดีบนชุดข้อมูลอิสระจากแหล่งอื่น
+3. **ผลเป็นการทดลอง:** ผลลัพธ์ไม่ใช่หลักฐานแสดงประสิทธิภาพทางคลินิก
+4. **ใช้พารามิเตอร์ที่กำหนดไว้:** preprocessing และ threshold ถูกกำหนดตามกระบวนการทดลองของโครงการ จึงอาจไม่เหมาะกับข้อมูลทุกแหล่ง
+5. **ไม่มีการยืนยันความถูกต้องทางคลินิก:** ไม่ควรใช้ผลเพื่อวินิจฉัยหรือวางแผนการรักษา
+6. **ข้อจำกัดด้านความเป็นส่วนตัว:** ระบบออกแบบให้ประมวลผลไฟล์ในหน่วยความจำและไม่บันทึกหรือส่งต่อข้อมูลตามที่ระบุไว้ แต่ผู้ใช้งานควรตรวจสอบการทำงานจริงของแอปและสภาพแวดล้อมที่นำไปติดตั้งก่อนใช้ข้อมูลที่มีความอ่อนไหว
+
+---
+
+## 🧪 Testing — การทดสอบ
+
+รันชุดทดสอบจากโฟลเดอร์หลักของ repository:
+
+```bash
+python tests/day10_02_pipeline_test.py
+python tests/day10_03_app_test.py
+```
+
+หากมีไฟล์ CSV ใน `tests/test_csc/` สามารถใช้ตรวจสอบการจัดการกรณี input ไม่ถูกต้อง เช่น ข้อมูลขาดหาย รูปแบบคอลัมน์ไม่ตรง หรือมีค่าที่ไม่ใช่ตัวเลข
+
+หากคำสั่งทดสอบไม่ทำงาน ให้ตรวจสอบ dependencies, path ของไฟล์โมเดล และชื่อไฟล์ทดสอบใน repository จริง
+
+---
+
+## 📄 License — สัญญาอนุญาต
+
+โครงการนี้จัดทำขึ้นเพื่อการศึกษาและการวิจัยเท่านั้น ส่วนเงื่อนไขการใช้งาน การเผยแพร่ และการนำไปใช้เชิงพาณิชย์ขึ้นอยู่กับ license ที่ผู้พัฒนากำหนดและสิทธิ์ของชุดข้อมูลหรือส่วนประกอบที่นำมาใช้
+
+> หาก repository มีไฟล์ `LICENSE` ให้ระบุชื่อ license และลิงก์ไปยังไฟล์นั้นในส่วนนี้ หากยังไม่มี ไม่ควรระบุว่าโครงการใช้ MIT, Apache 2.0 หรือ license อื่นโดยไม่มีการยืนยัน
+
+---
+
+## 🤝 Contributing — การมีส่วนร่วม
+
+ข้อเสนอแนะจากผู้พัฒนา นักศึกษา นักวิจัย และผู้เชี่ยวชาญที่เกี่ยวข้องสามารถช่วยปรับปรุงโครงการได้ หากพบปัญหาเกี่ยวกับการติดตั้ง การประมวลผล หรือการทดสอบ สามารถเปิด Issue ใน GitHub repository ได้เมื่อมีการเผยแพร่ repository แล้ว
+
+การเปลี่ยนแปลงที่เกี่ยวข้องกับข้อมูลสุขภาพควรให้ความสำคัญกับความถูกต้อง ความเป็นส่วนตัว และการระบุข้อจำกัดของโมเดลอย่างชัดเจน
+
+---
+
+## 📧 Contact & Links
+
+- **GitHub Repository:** [เพิ่ม URL ของ repository]
+- **Model Releases:** [เพิ่ม URL หน้า Releases เมื่อมีการเผยแพร่]
+- **Dataset:** [IEEE DataPort — EEG data for ADHD / Control children](https://doi.org/10.21227/rzfh-zn36)
+- **EEG Overview:** [Cleveland Clinic — Electroencephalogram (EEG)](https://my.clevelandclinic.org/health/diagnostics/9656-electroencephalogram-eeg)
+
+---
+
+จัดทำโดยทีมโครงการ **NeuroScreen AI** เพื่อการศึกษาและการวิจัยเท่านั้น ไม่ใช่เครื่องมือวินิจฉัยทางการแพทย์
