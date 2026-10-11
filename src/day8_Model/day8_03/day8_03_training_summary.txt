@@ -1,0 +1,18 @@
+============================================================
+DAY 8.3 - TRAINING SUMMARY
+============================================================
+Model: ResNet-18 (EEG-adapted, weights=None)
+LR: 0.0001 | Optimizer: Adam | Loss: binary_crossentropy
+L2 on Dense(64): 0.0001 | Dropout: 0.4 / 0.4
+Batch: 32 | Max epochs: 30 | Seed: 42
+Class weights (train only): Control=1.146360, ADHD=0.886781
+Callbacks: EarlyStopping(val_loss, patience=7, restore_best),
+           ReduceLROnPlateau(val_loss, factor=0.5, patience=3, min_lr=1e-06),
+           ModelCheckpoint(val_loss, save_best_only)
+Parameters: total=11220545 trainable=11210945 non_trainable=9600
+Epochs completed: 8 | Best epoch: 1
+Best val_loss: 0.665037
+Best val_accuracy: 0.573712
+Best val_auc: 0.817922
+Training time: 2724.3 s
+============================================================

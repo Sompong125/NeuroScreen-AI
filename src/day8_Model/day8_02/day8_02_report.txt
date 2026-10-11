@@ -1,0 +1,69 @@
+============================================================
+DAY 8.2 - IMPROVED CNN VERSION 1 REPORT
+============================================================
+
+1. Objective
+Test whether reducing overfitting and stabilizing training improves
+the CNN Baseline for ADHD vs Control EEG spectrogram classification
+(research prototype / screening support only).
+
+2. What Changed from Baseline
+- Learning rate: 0.001 -> 0.0003
+- L2 regularization 1e-4 on Dense(64)
+- Dropout: 0.25/0.25/0.30/0.30 -> 0.30/0.30/0.40/0.40
+- EarlyStopping patience: 5 -> 7
+- Added ReduceLROnPlateau (factor 0.5, patience 3, min_lr 1e-6)
+- Same dataset, same participant split, same class weights, same seed 42
+
+3. Training Result
+Epochs completed: 17 / 30
+Best epoch (min val_loss): 10
+Best train loss/acc: 0.4419 / 0.8051
+Training time: 22.0 s
+
+4. Validation Result
+Best val_loss: 0.3744
+Best val_accuracy: 0.8455
+Best val_auc: 0.9252
+Train-val accuracy gap at best epoch: -0.0403
+(Baseline gap was about 0.1658)
+
+5. Test Result - Segment Level
+Accuracy 0.8123 | Precision 0.8997 |
+Recall 0.7493 | Specificity 0.8930 |
+F1 0.8176 | ROC-AUC 0.8858 | PR-AUC 0.9134
+TP=260 TN=242 FP=29 FN=87
+
+6. Test Result - Participant Level
+Accuracy 0.8889 | Precision 1.0000 |
+Recall 0.7778 | Specificity 1.0000 |
+F1 0.8750 | ROC-AUC 0.8889 | PR-AUC 0.9233
+TP=7 TN=9 FP=0 FN=2
+
+7. Comparison with Baseline (participant-level)
+Metric            Baseline   Improved   Difference
+Accuracy        0.6111     0.8889     +0.2778
+Precision       0.75       1.0        +0.2500
+Recall          0.3333     0.7778     +0.4444
+Specificity     0.8889     1.0        +0.1111
+F1              0.4615     0.875      +0.4135
+ROC-AUC         0.8272     0.8889     +0.0617
+PR-AUC          0.825      0.9233     +0.0983
+
+8. Did the Improvement Help?
+Improved CNN increased ADHD sensitivity compared with the Baseline.
+Participant-level ROC-AUC improved compared with the Baseline.
+Overfitting gap at best epoch: -0.0403 (baseline ~0.1658).
+Judgement must consider the small test set (18 participants);
+differences of a few participants can move these numbers.
+
+9. Remaining Problems
+- Small test set (18 participants, 9 ADHD) limits confidence.
+- False negatives reduced but still present (FN=2).
+- Segment length (4 s) and spectrogram resolution unchanged.
+
+10. Conclusion
+This experiment is an ADHD screening / classification research prototype.
+Results describe model behaviour on this dataset only and do not
+indicate any clinical diagnostic capability.
+============================================================

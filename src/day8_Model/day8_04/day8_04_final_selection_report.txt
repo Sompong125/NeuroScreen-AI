@@ -1,0 +1,95 @@
+============================================================
+DAY 8.4 - FINAL MODEL COMPARISON REPORT
+============================================================
+
+1. Objective
+The objective of Day 8.4 is to systematically compare three CNN-based
+models evaluated on the NeuroScreen AI EEG spectrogram dataset:
+- CNN Baseline (Day 7)
+- Improved CNN (Day 8.2)
+- ResNet-18 (Day 8.3)
+The goal is to determine which model currently behaves most appropriately
+for the research prototype, focusing primarily on participant-level
+performance.
+
+2. Models Compared
+- Model 1: CNN Baseline (Day 7.5 evaluation)
+- Model 2: Improved CNN (Day 8.2)
+- Model 3: ResNet-18 (Day 8.3)
+
+3. Dataset and Test Set
+All models were evaluated on the exact same test set:
+- 18 participants total (9 ADHD, 9 Control)
+- Participant-level split (seed 42), no data leakage.
+- Threshold fixed at 0.5 for all models.
+
+4. Participant-Level Results
+Model            Accuracy  Recall    Specificity F1        ROC-AUC   PR-AUC
+Baseline CNN     0.6111    0.3333    0.8889      0.4615    0.8272    0.8250
+Improved CNN     0.8889    0.7778    1.0000      0.8750    0.8889    0.9233
+ResNet-18        0.5000    1.0000    0.0000      0.6667    0.7407    0.7353
+
+5. Error Analysis
+- Baseline CNN: High False Negatives (FN=6). The model was conservative,
+  frequently misclassifying ADHD participants as Control.
+- Improved CNN: Balanced errors (FN=2, FP=0). Successfully
+  reduced false negatives while maintaining high specificity.
+- ResNet-18: Zero False Negatives (FN=0), but extremely high False
+  Positives (FP=9). The model predicted almost all participants as ADHD,
+  resulting in 0% specificity.
+
+6. Training / Validation Analysis
+- Baseline CNN: Best epoch 2, Val Acc 0.5595, Gap 0.1658
+- Improved CNN: Best epoch 10, Val Acc 0.8455, Gap -0.0403
+- ResNet-18: Best epoch 1, Val Acc 0.5737, Gap 0.0744
+
+The ResNet-18 showed severe overfitting, with training accuracy reaching 1.0
+while validation accuracy stagnated. The Improved CNN showed better stability
+and a smaller train-validation gap compared to the Baseline.
+
+7. Model Complexity
+- Baseline CNN: ~107K parameters
+- Improved CNN: ~107K parameters (same architecture, different hyperparameters)
+- ResNet-18: ~11.2M parameters
+The ResNet-18 has roughly 100x more parameters than the other models, which
+likely contributed to overfitting given the relatively small dataset size.
+
+8. Strengths and Weaknesses
+- Baseline CNN: High specificity, but very low ADHD sensitivity (recall).
+- Improved CNN: Excellent balance between sensitivity and specificity. Strong F1
+  and ROC-AUC. Computationally efficient.
+- ResNet-18: Perfect ADHD sensitivity on this test split, but complete failure
+  to identify Control participants (Specificity=0). Severe overfitting.
+
+9. Final Candidate Selection
+Based on the current experiment, the Improved CNN is selected as the leading
+candidate for the next development stage because it provides the most balanced
+participant-level performance among the evaluated models on the same test split.
+
+Why Improved CNN?
+- It achieves 88.89% accuracy, 77.78% recall, and 100% specificity.
+- It avoids the extreme conservative bias of the Baseline CNN.
+- It avoids the degenerate "predict all ADHD" behavior of the ResNet-18.
+
+Why not the others?
+- Baseline CNN misses too many ADHD participants (low recall).
+- ResNet-18 fails to distinguish between classes, predicting nearly everyone
+  as ADHD, rendering it useless for screening Control individuals.
+
+10. Limitations
+1. Test set contains only 18 participants.
+2. Only 9 ADHD and 9 Control participants are in the test set.
+3. A single participant can noticeably change the metrics.
+4. Experiments use a single random seed (42).
+5. No repeated-seed confidence intervals were performed.
+6. Threshold remains fixed at 0.5.
+7. The dataset and spectrogram settings remain fixed.
+8. Results are experimental research results.
+9. The system is not a clinical diagnostic device.
+10. Further validation on larger and independent datasets is required.
+
+11. Conclusion
+The Improved CNN currently represents the best candidate in this experiment.
+It demonstrates that careful hyperparameter tuning and regularization on a
+lightweight CNN can outperform a much larger ResNet-18 on small EEG datasets.
+============================================================

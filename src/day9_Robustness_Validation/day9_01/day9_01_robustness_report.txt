@@ -1,0 +1,94 @@
+============================================================
+DAY 9.1 - MULTI-SEED ROBUSTNESS REPORT
+============================================================
+
+1. Objective
+Evaluate the robustness and reproducibility of the Improved CNN
+(Day 8.2) by training it with 5 different random seeds and comparing
+participant-level performance on the same test set.
+
+2. Dataset
+Source: day7_02_cnn_dataset.npz
+Train: 2992 segments (85 participants: 43 ADHD / 42 Control)
+Validation: 563 segments (18 participants: 9 ADHD / 9 Control)
+Test: 618 segments (18 participants: 9 ADHD / 9 Control)
+Participant-level split, leakage = 0.
+
+3. Model Architecture
+Improved CNN (same as Day 8.2):
+- Conv2D 32 (3x3) + BN + MaxPool + Dropout 0.30
+- Conv2D 64 (3x3) + BN + MaxPool + Dropout 0.30
+- Conv2D 128 (3x3) + BN + GAP + Dropout 0.40
+- Dense 64 (ReLU, L2 1e-4) + Dropout 0.40
+- Dense 1 (sigmoid)
+Total parameters: ~107K
+
+4. Training Configuration
+Adam lr=0.0003 | loss=binary_crossentropy | batch=32 | max epochs=30
+EarlyStopping(val_loss, patience=7, restore_best)
+ReduceLROnPlateau(val_loss, factor=0.5, patience=3, min_lr=1e-6)
+Class weights: Control=1.146360, ADHD=0.886781
+
+5. Results per Seed
+
+Seed 42:
+  Accuracy=0.8889, Precision=1.0000, Recall=0.7778,
+  Specificity=1.0000, F1=0.8750, ROC-AUC=0.8889, PR-AUC=0.9233
+  TP=7.0, TN=9.0, FP=0.0, FN=2.0
+
+Seed 52:
+  Accuracy=0.7778, Precision=0.7778, Recall=0.7778,
+  Specificity=0.7778, F1=0.7778, ROC-AUC=0.9383, PR-AUC=0.9437
+  TP=7.0, TN=7.0, FP=2.0, FN=2.0
+
+Seed 62:
+  Accuracy=0.7222, Precision=0.7000, Recall=0.7778,
+  Specificity=0.6667, F1=0.7368, ROC-AUC=0.9136, PR-AUC=0.9355
+  TP=7.0, TN=6.0, FP=3.0, FN=2.0
+
+Seed 72:
+  Accuracy=0.7222, Precision=0.7500, Recall=0.6667,
+  Specificity=0.7778, F1=0.7059, ROC-AUC=0.8765, PR-AUC=0.8644
+  TP=6.0, TN=7.0, FP=2.0, FN=3.0
+
+Seed 82:
+  Accuracy=0.8333, Precision=0.8750, Recall=0.7778,
+  Specificity=0.8889, F1=0.8235, ROC-AUC=0.9259, PR-AUC=0.9278
+  TP=7.0, TN=8.0, FP=1.0, FN=2.0
+
+6. Summary Statistics (Mean / Std / Min / Max)
+Accuracy       Mean=0.7889  Std=0.0724  Min=0.7222  Max=0.8889
+Precision      Mean=0.8206  Std=0.1189  Min=0.7000  Max=1.0000
+Recall         Mean=0.7556  Std=0.0497  Min=0.6667  Max=0.7778
+Specificity    Mean=0.8222  Std=0.1267  Min=0.6667  Max=1.0000
+F1             Mean=0.7838  Std=0.0675  Min=0.7059  Max=0.8750
+ROC_AUC        Mean=0.9086  Std=0.0256  Min=0.8765  Max=0.9383
+PR_AUC         Mean=0.9189  Std=0.0315  Min=0.8644  Max=0.9437
+
+7. Robustness Analysis
+- Accuracy variability (Std): 0.0724
+- Recall variability (Std): 0.0497
+- Specificity variability (Std): 0.1267
+
+There is noticeable variability across seeds, indicating that the
+model's performance is sensitive to random initialization on this
+dataset size. Further investigation with more seeds or larger datasets
+would be needed.
+
+8. Limitations
+1. Test set contains only 18 participants (9 ADHD, 9 Control).
+2. A single participant can noticeably change the metrics.
+3. Only 5 random seeds were tested.
+4. Threshold fixed at 0.5; no threshold optimization was performed.
+5. Single dataset; no external validation.
+6. Results are experimental research results.
+7. The system is not a clinical diagnostic device.
+8. Further validation on larger and independent datasets is required.
+
+9. Conclusion
+The multi-seed experiment provides evidence that the Improved CNN
+shows some stability across different random
+initializations on this test split. The model can be considered a
+candidate for the next development stage, but the small test set
+limits the strength of this conclusion.
+============================================================

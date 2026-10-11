@@ -1,0 +1,59 @@
+============================================================
+DAY 8.1 - CNN BASELINE ERROR ANALYSIS
+============================================================
+
+1. Dataset Summary
+- Total participants: 18
+- ADHD participants: 9
+- Control participants: 9
+
+2. Overall Findings
+- Total Errors: 7
+- False Negatives (ADHD predicted as Control): 6
+- False Positives (Control predicted as ADHD): 1
+
+3. ADHD Error Analysis
+- Correctly classified: 3
+- Incorrectly classified: 6
+- The model struggles significantly with identifying ADHD participants.
+
+4. Control Error Analysis
+- Correctly classified: 8
+- Incorrectly classified: 1
+- The model performs well in identifying Control participants.
+
+5. Probability Analysis
+- ADHD: Mean Prob = 0.4106, Median = 0.3797
+- Control: Mean Prob = 0.2449, Median = 0.2493
+
+6. Segment Count Analysis
+- Segment counts vary across participants. This may have a relationship with prediction errors, but further investigation is needed.
+- ADHD Correct: Mean Segments = 45.0
+- ADHD Incorrect: Mean Segments = 35.3
+- Control Correct: Mean Segments = 29.2
+- Control Incorrect: Mean Segments = 37.0
+
+7. Participants Closest to Fixed 0.5 Threshold
+(Note: Threshold is fixed at 0.5, not optimized)
+- v18p (ADHD): Prob=0.5269, Distance=0.0269, Correct=True
+- v303 (Control): Prob=0.5386, Distance=0.0386, Correct=False
+- v286 (ADHD): Prob=0.5763, Distance=0.0763, Correct=True
+- v198 (ADHD): Prob=0.3934, Distance=0.1066, Correct=False
+- v183 (ADHD): Prob=0.3797, Distance=0.1203, Correct=False
+
+8. Interpretation
+- The CNN Baseline exhibits a high False Negative rate at the participant level.
+- Out of 9 ADHD participants, only 3 were correctly identified, while 6 were missed (classified as Control).
+- Out of 9 Control participants, 8 were correctly identified, and only 1 was misclassified as ADHD.
+- This indicates a conservative prediction behavior by the model, where it tends to predict the 'safer' class (Control) unless highly confident.
+- While segment count differences may have a relationship with prediction errors, this cannot be confirmed as a direct cause without further evidence.
+- Biological or clinical reasons for misclassification cannot be inferred from this data alone.
+
+9. Limitations
+- This analysis is based on a small test set (18 participants).
+- No threshold optimization was performed; a fixed 0.5 threshold was used.
+
+10. Conclusion
+- The baseline model shows promise in identifying Control cases but requires significant improvement in Sensitivity (Recall) for ADHD screening.
+- Future phases should explore methods to address this conservative prediction behavior.
+============================================================

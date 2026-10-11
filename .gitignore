@@ -1,0 +1,76 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+tfenv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Environment variables
+.env
+.env.local
+
+# Data files (ใหญ่ + ข้อมูลส่วนบุคคล)
+*.csv
+*.npy
+*.npz
+*.parquet
+
+# Model files (ใหญ่ — ใช้ Git LFS แทน)
+*.keras
+*.h5
+*.pt
+*.pth
+*.onnx
+*.pb
+
+# Archive files
+*.rar
+*.zip
+*.7z
+*.tar.gz
+
+# Output files (generate ใหม่ได้จากโค้ด)
+**/output/
+
+# Test CSV files (ยกเว้นไฟล์ตัวอย่างเล็กๆ)
+# data/test_samples/*.csv
+
+# Misc
+*.bmp
+*.log

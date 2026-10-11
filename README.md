@@ -1,24 +1,48 @@
 # NeuroScreen AI
 
-## ภาษาไทย
+**An AI-assisted EEG screening research prototype for ADHD risk assessment.**
 
-**NeuroScreen AI** คือโครงงานต้นแบบระบบช่วยคัดกรองความเสี่ยงภาวะสมาธิสั้น (ADHD) จากสัญญาณคลื่นไฟฟ้าสมอง (EEG) โดยใช้การประมวลผลสัญญาณ การสร้างสเปกโตรแกรม (Spectrogram) และโครงข่ายประสาทเทียมแบบคอนโวลูชัน (CNN) เพื่อวิเคราะห์ข้อมูลและแสดงผลสนับสนุนการคัดกรองเบื้องต้น
+## Overview
 
-ระบบนี้จัดทำขึ้นเพื่อการศึกษาและการวิจัย โดยมีเป้าหมายเพื่อสนับสนุนการพิจารณาของผู้เชี่ยวชาญ ไม่ใช่เครื่องมือสำหรับวินิจฉัยโรค และไม่สามารถใช้แทนการประเมินทางการแพทย์ได้
+NeuroScreen AI is a research project exploring the use of artificial intelligence to analyze electroencephalogram (EEG) signals and support preliminary ADHD risk assessment.
 
-## English
+The system is intended to help organize analysis results into an understandable format for review by qualified professionals.
 
-**NeuroScreen AI** is a research prototype for ADHD screening support using electroencephalography (EEG) signals. It applies signal preprocessing, spectrogram generation, and a Convolutional Neural Network (CNN) to analyze EEG data and provide preliminary screening-support results.
+## Project Goals
 
-The system is intended for educational and research purposes and is designed to support review by qualified professionals. It is not a diagnostic tool and must not replace clinical assessment.
+- Process and validate uploaded EEG data.
+- Analyze EEG-derived features using a trained AI model.
+- Present the analysis results in a user-friendly interface.
+- Support expert review rather than replace professional assessment.
 
-## Disclaimer / ข้อจำกัดความรับผิดชอบ
+## Project Structure
 
-- **ภาษาไทย:** ผลลัพธ์จากระบบเป็นเพียงข้อมูลสนับสนุนการคัดกรองเบื้องต้น ไม่ใช่การวินิจฉัยโรค ควรให้ผู้เชี่ยวชาญที่มีคุณสมบัติเหมาะสมเป็นผู้พิจารณาร่วมกับข้อมูลอื่น
-- **English:** The system provides screening-support information only, not a medical diagnosis. Results should be reviewed by qualified professionals alongside other relevant information.
+```text
+NeuroScreen-AI/
+├── app.py
+├── src/
+│   ├── day10_02_inference_pipeline.py
+│   └── ui_components.py
+├── tests/
+│   ├── day10_02_pipeline_test.py
+│   └── day10_03_app_test.py
+├── docs/
+├── assets/
+├── models/
+└── .streamlit/
+    └── config.toml
+```
 
-## Technology / เทคโนโลยี
+## Current Status
 
-- EEG signal preprocessing / การเตรียมและประมวลผลสัญญาณ EEG
-- Spectrogram generation / การสร้างสเปกโตรแกรม
-- Convolutional Neural Network (CNN) / โครงข่ายประสาทเทียมแบบคอนโวลูชัน
+This repository contains the application code and test files prepared for the Day 10 product development stage.
+
+Model files and research datasets may need to be configured separately before the application can run.
+
+## Important Notice
+
+NeuroScreen AI is a research prototype, not a medical diagnostic tool. Its outputs must not be used as a substitute for diagnosis or professional medical advice.
+
+## Setup
+
+Python dependencies and model configuration must be confirmed before running the application. Setup instructions will be updated after the required packages and model files have been verified.

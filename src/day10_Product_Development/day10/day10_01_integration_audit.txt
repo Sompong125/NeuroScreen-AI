@@ -1,0 +1,135 @@
+============================================================
+DAY 10.1 - PRODUCT INTEGRATION AUDIT REPORT
+NeuroScreen AI (research prototype / screening support เท่านั้น
+ไม่ใช่ระบบวินิจฉัยทางการแพทย์)
+Audit date: 2026-10-10 01:09:13
+============================================================
+
+1. PROJECT STRUCTURE (ตรวจพบจริง)
+Project root: C:\Users\Acer\Desktop\Healthcare AI\NeuroScreen-AI
+Data root:    C:\Users\Acer\Desktop\Healthcare AI\NeuroScreen-AI\Data
+
+- day10_Product_Development/  (0 files)
+- day5_preprocessing/  (4 files)
+    README.md
+    day5_01_basic_check.py
+    day5_02_preprocessing_test.py
+    day5_03_spectrogram_test.py
+- day6_split/  (2 files)
+    day6_01_participant_split.py
+    day6_02_segment_manifest.py
+- day7_cnn/  (2 files)
+    day7_01_cnn_input_test.py
+    day7_04.rar
+- day8_Model/  (1 files)
+    day8_02.rar
+- day9_Robustness_Validation/  (0 files)
+
+Web app files ที่ตรวจพบ:
+  - C:\Users\Acer\Desktop\Healthcare AI\NeuroScreen-AI\Data\day4_test_spectrogram.py
+  - C:\Users\Acer\Desktop\Healthcare AI\NeuroScreen-AI\Data\exploreApp_Data.py
+Requirements files ที่ตรวจพบ:
+  (ไม่พบ requirements.txt)
+
+Dataset ขนาดใหญ่:
+- adhdata.csv: C:\Users\Acer\Desktop\Healthcare AI\NeuroScreen-AI\Data\adhdata.csv (254.9 MB)
+  [ห้ามโหลดทั้งไฟล์ในเว็บ - ใช้เฉพาะเมื่อจำเป็นจริง]
+
+2. MODEL PATH (ตรวจพบ)
+- Improved CNN (Final Model Candidate): C:\Users\Acer\Desktop\Healthcare AI\NeuroScreen-AI\Data\day8_Model\day8_02\day8_02_improved_model.keras
+  ขนาด: 1.3 MB
+- Training code: C:\Users\Acer\Desktop\Healthcare AI\NeuroScreen-AI\Data\day8_Model\day8_02\day8_02_improved_cnn.py
+
+3. PREPROCESSING PATH (ตรวจพบ)
+- Day 5 scripts:
+    - C:\Users\Acer\Desktop\Healthcare AI\NeuroScreen-AI\Data\day5_preprocessing\day5_01_basic_check.py
+    - C:\Users\Acer\Desktop\Healthcare AI\NeuroScreen-AI\Data\day5_preprocessing\day5_02_preprocessing_test.py
+    - C:\Users\Acer\Desktop\Healthcare AI\NeuroScreen-AI\Data\day5_preprocessing\day5_03_spectrogram_test.py
+- Day 6 scripts:
+    - C:\Users\Acer\Desktop\Healthcare AI\NeuroScreen-AI\Data\day6_split\day6_01_participant_split.py
+    - C:\Users\Acer\Desktop\Healthcare AI\NeuroScreen-AI\Data\day6_split\day6_02_segment_manifest.py
+- Day 4.1 window experiment: NOT FOUND
+
+4. SPECTROGRAM / DATASET PATH (ตรวจพบ)
+- Day 7.2 dataset builder: C:\Users\Acer\Desktop\Healthcare AI\NeuroScreen-AI\Data\day7_cnn\day7_02\day7_02_prepare_cnn_dataset.py
+- CNN dataset (npz): C:\Users\Acer\Desktop\Healthcare AI\NeuroScreen-AI\Data\day7_cnn\day7_02\day7_02_cnn_dataset.npz
+  shapes: X_train=(2992, 19, 65, 7), X_val=(563, 19, 65, 7), X_test=(618, 19, 65, 7)
+- Day 7.3 CNN architecture code: C:\Users\Acer\Desktop\Healthcare AI\NeuroScreen-AI\Data\day7_cnn\day7_03\day7_03_define_cnn_model.py
+- Day 7.5 evaluation code: C:\Users\Acer\Desktop\Healthcare AI\NeuroScreen-AI\Data\day7_cnn\day7_05\day7_05_evaluate_cnn.py
+- Day 8.2 improved training code: C:\Users\Acer\Desktop\Healthcare AI\NeuroScreen-AI\Data\day8_Model\day8_02\day8_02_improved_cnn.py
+- Day 8.5 error analysis code: C:\Users\Acer\Desktop\Healthcare AI\NeuroScreen-AI\Data\day8_Model\day8_05\day8_05_error_confidence_analysis.py
+
+5. MODEL INPUT SHAPE
+- Expected: (batch, 65, 7, 19) = freq bins x time bins x EEG channels
+- Detected from .keras config: None
+- Stored dataset shape: (N, 19, 65, 7) -> transpose เป็น (N, 65, 7, 19) ก่อนเข้าโมเดล
+
+6. จุดที่เชื่อมต่อกันได้ (PIPELINE COMPATIBILITY)
+Pipeline: EEG input -> Preprocessing -> Segmentation -> Spectrogram
+          -> Improved CNN -> Participant-level aggregation -> Screening result
+
+รายการตรวจสอบ (คาดหวัง / ตรวจพบ / สถานะ):
+- Model input shape            expected=[None, 65, 7, 19]        detected=None                     MISMATCH
+- Dataset stored shape (X_train) expected=(2992, 19, 65, 7)        detected=(2992, 19, 65, 7)        OK
+- channels                     expected=19                       detected=19                       OK
+- sampling_rate                expected=128                      detected=128                      OK
+- window_sec                   expected=4.0                      detected=not detected             MISMATCH
+- window_samples               expected=512                      detected=not detected             MISMATCH
+- hop_samples                  expected=64                       detected=not detected             MISMATCH
+- frames                       expected=7                        detected=not detected             MISMATCH
+- nperseg                      expected=128                      detected=not detected             MISMATCH
+- freq_bins                    expected=65                       detected=not detected             MISMATCH
+- threshold                    expected=0.5                      detected=0.5                      OK
+- Participant aggregation      expected=mean segment probability detected=mean segment probability OK
+
+สรุปความเข้ากันได้: พบ 7 จุดที่ต้องตรวจสอบ
+การรวมผลระดับ participant: mean(segment probabilities) แล้วตัดที่ threshold 0.5 (คงที่ ห้ามเปลี่ยนในขั้นตอนนี้)
+
+7. ปัญหาที่ต้องแก้ก่อนสร้างเว็บ
+1. ไม่มี requirements.txt -> ต้องสร้าง (streamlit, tensorflow, numpy, pandas, scipy, scikit-learn, matplotlib, pillow)
+2. COMPATIBILITY: Model input shape คาดหวัง [None, 65, 7, 19] แต่ตรวจพบ 'None'
+3. COMPATIBILITY: window_sec คาดหวัง 4.0 แต่ตรวจพบ 'not detected'
+4. COMPATIBILITY: window_samples คาดหวัง 512 แต่ตรวจพบ 'not detected'
+5. COMPATIBILITY: hop_samples คาดหวัง 64 แต่ตรวจพบ 'not detected'
+6. COMPATIBILITY: frames คาดหวัง 7 แต่ตรวจพบ 'not detected'
+7. COMPATIBILITY: nperseg คาดหวัง 128 แต่ตรวจพบ 'not detected'
+8. COMPATIBILITY: freq_bins คาดหวัง 65 แต่ตรวจพบ 'not detected'
+9. MEMORY: โหลดโมเดลครั้งเดียวด้วย @st.cache_resource และจำกัดขนาดไฟล์ EEG ที่อัปโหลด
+10. RUNTIME: เครื่องนี้ไม่มี GPU (CPU only) -> inference เร็วพอสำหรับ 4s segments แต่ต้องทดสอบเวลาตอบสนอง
+
+8. แผนพัฒนา WEB APPLICATION (Streamlit)
+Framework: Streamlit (ตัวเลือกเริ่มต้น เนื่องจากโปรเจกต์ยังไม่มี framework อื่น)
+โครงสร้างหน้าเว็บ:
+  1. Home - แนะนำ NeuroScreen AI พร้อมคำเตือนว่านี่คือ research prototype
+     สำหรับ screening support เท่านั้น ไม่ใช่เครื่องมือวินิจฉัยทางการแพทย์
+  2. EEG Input - อธิบายรูปแบบข้อมูลที่รองรับ: 19 EEG channels, 128 Hz,
+     ไฟล์ .csv/.txt ที่ระบุ channel และเวลา; แนะนำความยาวขั้นต่ำ 4 วินาที
+     ต่อ recording; จำกัดขนาดไฟล์เพื่อคุมหน่วยความจำ
+  3. Screening Analysis - รัน pipeline เดียวกับการเทรน:
+     EEG -> bandpass/notch -> standardize -> 4s segments (hop 64 samples)
+     -> STFT (nperseg=128) -> (65, 7, 19) -> Improved CNN -> segment probs
+  4. Results - แสดง participant-level mean probability, predicted class
+     ที่ threshold 0.5, segment-level distribution และคำอธิบายที่ระมัดระวัง
+     (ห้ามสร้างผลปลอมหรือข้อมูลตัวอย่างเสมือนเป็นผลจากโมเดลจริง)
+  5. About & Limitations - ข้อจำกัดทั้งหมด: test set 18 คน, ไม่มี external
+     validation, fixed threshold 0.5, ผลเป็น experimental เท่านั้น
+
+เทคนิค:
+- โหลดโมเดลครั้งเดียวด้วย @st.cache_resource
+- cache ผลลัพธ์การประมวลผลต่อไฟล์ด้วย @st.cache_data (hash input)
+- แสดงคำเตือน (disclaimer) ทุกหน้าที่เกี่ยวข้องกับผลทำนาย
+- ไม่โหลด adhdata.csv ในเว็บ
+
+9. รายการไฟล์ที่ต้องสร้างหรือแก้ไขในขั้นถัดไป (Day 10.2+)
+- data/day10_Product_Development/day10/day10_02_inference_pipeline.py
+  (โมดูลรวม: โหลดโมเดล + ทำความสะอาด + แบ่งเซกเมนต์ + spectrogram
+   + ทำนาย + รวมผลระดับผู้เข้าร่วม — คัดลอกจากโค้ด Day 5/7/8.2 โดยตรง
+   ห้ามแก้ไขไฟล์เดิม)
+- data/day10_Product_Development/day10/app.py (Streamlit UI 5 หน้า)
+- data/day10_Product_Development/day10/requirements.txt
+- ไฟล์ทดสอบขนาดเล็ก (เช่น สคริปต์สร้าง synthetic EEG สำหรับทดสอบ
+  pipeline โดยไม่แตะข้อมูลจริง)
+
+หมายเหตุ: ห้ามเทรนโมเดลใหม่ ห้ามแก้ไฟล์ Day 7-9 ห้ามเปลี่ยน threshold 0.5
+และห้ามอ้างว่าระบบวินิจฉัยโรคได้
+============================================================

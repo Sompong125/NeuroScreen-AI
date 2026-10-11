@@ -1,0 +1,25 @@
+============================================================
+DAY 9.2 - VALIDATION SUMMARY
+============================================================
+Multi-seed source: file
+
+[PASS] All source files found
+[PASS] Test participants = 18
+[PASS] ADHD = 9
+[PASS] Control = 9
+[PASS] Model comparison loaded
+[PASS] Matches Day 8.4 comparison
+[PASS] 5 seeds present
+[PASS] Multi-seed results loaded
+[PASS] Seed 42 consistent with Day 8.2
+[PASS] Summary statistics consistent
+[PASS] Interpretability data loaded
+[PASS] All summary calculations correct
+[PASS] Report generated
+[PASS] No fabricated values
+[PASS] No old files modified
+[PASS] All output files generated
+[PASS] Validation passed
+
+Status: PASSED
+============================================================

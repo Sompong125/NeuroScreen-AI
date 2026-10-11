@@ -1,0 +1,17 @@
+============================================================
+DAY 8.2 - TRAINING SUMMARY
+============================================================
+LR: 0.0003 | Optimizer: Adam | Loss: binary_crossentropy
+L2 on Dense(64): 0.0001 | Dropout: 0.30/0.30/0.40/0.40
+Batch: 32 | Max epochs: 30 | Seed: 42
+Class weights (train only): Control=1.146360, ADHD=0.886781
+Callbacks: EarlyStopping(val_loss, patience=7, restore_best),
+           ReduceLROnPlateau(val_loss, factor=0.5, patience=3, min_lr=1e-06),
+           ModelCheckpoint(val_loss, save_best_only)
+Parameters: total=107073 trainable=106625 non_trainable=448
+Epochs completed: 17 | Best epoch: 10
+Best val_loss: 0.374418
+Best val_accuracy: 0.845471
+Best val_auc: 0.925170
+Training time: 22.0 s
+============================================================

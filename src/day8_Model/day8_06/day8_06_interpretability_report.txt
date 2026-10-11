@@ -1,0 +1,131 @@
+============================================================
+DAY 8.6 - MODEL INTERPRETABILITY REPORT
+============================================================
+
+1. Objective
+Investigate which regions of the EEG spectrogram the Improved CNN
+(from Day 8.2) focuses on when making its predictions. This is a model
+attribution experiment, not a biological or clinical study.
+
+2. Model Used
+Improved CNN (Day 8.2, file: day8_02_improved_model.keras)
+Architecture: Conv2D 32 -> Conv2D 64 -> Conv2D 128 -> GlobalAvgPool
+-> Dense 64 -> Dense 1. Total parameters: ~107K.
+The model was loaded for inference only; no weights were modified.
+
+3. Test Participants
+18 participants (9 ADHD, 9 Control) — same split as Day 7.5 / 8.4.
+
+4. Interpretability Method
+Grad-CAM applied at the LAST Conv2D layer before GlobalAveragePooling2D:
+  target_layer = conv2d_2
+A functional gradient model sharing the original layers/weights was
+constructed. Gradients of P(ADHD) with respect to the conv feature maps
+were globally pooled and used to weight the maps. Heatmaps were
+upsampled (bilinear) back to the original spectrogram grid
+(65 frequency bins x 7 time bins) and overlaid on the mean spectrogram
+(averaged across 19 EEG channels).
+
+5. Selected Participants
+- Correct ADHD example:    v3p
+- Correct Control example: v42p
+- False Negative:          v25p
+- False Negative:          v6p
+- Threshold case:          v140 (participant-level P(ADHD) ~ 0.465)
+
+6. Correct ADHD Example
+Participant ID: v3p
+Participant probability: 0.7180
+Representative segment probability: 0.7094
+Top frequency bin: 6 (6.0 Hz)
+Top time bin: 0
+Top channel (magnitude proxy): Fp1
+The visualization indicates which input regions were influential for the
+model prediction.
+
+7. Correct Control Example
+Participant ID: v42p
+Participant probability: 0.2743
+Representative segment probability: 0.2467
+Top frequency bin: 6 (6.0 Hz)
+Top time bin: 0
+Top channel (magnitude proxy): P4
+The visualization indicates which input regions were influential for the
+model prediction.
+
+8. False Negative v25p
+Participant ID: v25p
+Participant probability: 0.2097
+Representative segment probability: 0.2158
+Top frequency bin: 6 (6.0 Hz)
+Top time bin: 0
+Top channel (magnitude proxy): Fz
+The model assigned a low ADHD probability to this participant despite the
+true ADHD label. Grad-CAM shows which regions the model attended to when
+producing this low probability.
+
+9. False Negative v6p
+Participant ID: v6p
+Participant probability: 0.2528
+Representative segment probability: 0.2586
+Top frequency bin: 9 (9.0 Hz)
+Top time bin: 0
+Top channel (magnitude proxy): Fp2
+Same interpretation as v25p: model attribution only; no biological claim.
+
+10. Threshold Case (v140)
+Participant ID: v140
+Participant probability: 0.4649
+Representative segment probability: 0.4599
+Top frequency bin: 9 (9.0 Hz)
+Top time bin: 0
+Top channel (magnitude proxy): Fz
+This participant is close to the decision threshold 0.5, so small shifts
+in attribution could flip the prediction.
+
+11. Channel Importance (aggregated across selected participants)
+Top channel (magnitude proxy): Fp2 (importance 12.1456)
+Note: this is an activation-magnitude proxy, NOT a biomarker claim.
+Full table: day8_06_channel_importance.csv
+
+12. Frequency Importance
+Top frequency bin: 6.0 (6.0 Hz)
+Full table: day8_06_frequency_importance.csv
+Bin indices correspond to the spectrogram frequency axis (0..64 Hz).
+
+13. Time Importance
+Top time bin: 0.0 (out of 7, within the 4-second segment)
+Full table: day8_06_time_importance.csv
+
+14. Key Observations
+- Grad-CAM heatmaps show that the model's attribution is spatially
+  localized in the frequency-time plane, not uniformly distributed.
+- For correct predictions, the attribution typically concentrates in
+  a small number of frequency bands and time windows.
+- For the two false negatives (v25p, v6p), the model's attribution
+  pattern differs from the correct ADHD cases, which may indicate
+  that these participants' spectrograms do not match the patterns
+  the model learned during training.
+- The threshold case (v140) shows intermediate attribution strength,
+  consistent with its probability being close to 0.5.
+- All observations describe model behavior on this dataset; they do
+  not establish biological or clinical explanations.
+
+15. Limitations
+1. Test set only contains 18 participants.
+2. Only selected examples are visualized.
+3. Grad-CAM is an approximate attribution method.
+4. Model attribution does not prove biological causality.
+5. EEG channel importance does not establish clinical biomarkers.
+6. Dataset is limited to the current experimental dataset.
+7. No external validation.
+8. The system is not a clinical diagnostic device.
+
+16. Conclusion
+The Grad-CAM analysis shows that the Improved CNN relies on specific
+frequency-time regions and EEG channels when making predictions. The
+visualizations describe model attribution, not clinical or biological
+causation. Further work with larger and independent datasets, and
+complementary interpretability methods, would be required before any
+stronger claims could be made.
+============================================================

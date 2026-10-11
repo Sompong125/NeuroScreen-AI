@@ -1,0 +1,19 @@
+cd "C:\Users\Acer\Documents\NeuroScreen-AI"
+@"
+# NeuroScreen AI - Dependencies
+# Python >= 3.10
+
+# Core ML
+tensorflow==2.21.0
+numpy==2.5.3
+scipy==1.18.1
+
+# Data
+pandas==3.0.5
+
+# Web
+streamlit==1.65.0
+
+# Visualization
+matplotlib==3.11.2
+"@ | Out-File -FilePath "requirements.txt" -Encoding utf8

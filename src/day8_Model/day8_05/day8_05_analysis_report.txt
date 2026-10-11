@@ -1,0 +1,73 @@
+============================================================
+DAY 8.5 - IMPROVED CNN DEEP ANALYSIS REPORT
+============================================================
+
+1. Objective
+To deeply analyze the existing Improved CNN predictions on the test set,
+focusing on participant-level errors, prediction confidence, probability
+distributions, and segment-level consistency.
+
+2. Dataset / Test Set
+- Total test participants: 18 (9 ADHD, 9 Control)
+- Decision threshold: 0.5 (fixed, not optimized)
+- Participant prediction: Mean of segment probabilities
+
+3. Overall Participant-Level Performance
+- Correct Predictions: 16
+- Incorrect Predictions: 2
+- False Negatives (ADHD predicted as Control): 2
+- False Positives (Control predicted as ADHD): 0
+
+4. Correct Predictions
+Within this test split, the Improved CNN correctly classified 16 
+out of 18 participants.
+
+5. False Negatives
+The model missed 2 ADHD participant(s).
+False Negative IDs: v25p, v6p
+Mean FN Probability: 0.2312
+Mean FN Segments: 26.5
+
+6. False Positives
+The model incorrectly classified 0 Control participant(s) as ADHD.
+False Positive IDs: none
+
+7. Probability / Confidence Analysis
+- Mean probability for True ADHD: 0.6414
+- Mean probability for True Control: 0.2158
+The separation between the mean probabilities of the two classes indicates
+the model's general discriminative ability on this test split.
+
+8. Threshold Proximity
+- Closest to Threshold (0.5): v140 (Prob: 0.4649, Dist: 0.0351)
+- Farthest from Threshold (0.5): v116 (Prob: 0.0237, Dist: 0.4763)
+Participants close to the threshold represent borderline cases where slight
+changes in probability could flip the prediction.
+
+9. Segment Consistency
+Segment-level analysis shows whether the participant-level prediction is supported by the majority of segments or driven by a few outliers. Refer to day8_05_segment_consistency.csv and .png for details.
+
+10. Key Findings
+- The Improved CNN achieved 16 correct classifications out of 18.
+- Mean probability for ADHD (0.6414) is higher than Control (0.2158).
+- False Negatives: 2 | False Positives: 0.
+- The errors are concentrated in specific participants rather than being uniformly distributed.
+
+11. Limitations
+1. Test set contains only 18 participants.
+2. 9 ADHD and 9 Control participants.
+3. Single random seed.
+4. Threshold fixed at 0.5.
+5. No threshold optimization was performed.
+6. Segment-level analysis is exploratory.
+7. Results are experimental research results.
+8. The system is not a clinical diagnostic device.
+9. Larger and independent datasets are required.
+
+12. Conclusion
+The deep analysis provides insight into the behavior of the Improved CNN
+on the current test split. The model shows a general ability to separate
+ADHD and Control participants based on mean probability, but struggles
+with specific borderline or atypical cases. These findings are strictly
+experimental and do not imply clinical diagnostic capability.
+============================================================

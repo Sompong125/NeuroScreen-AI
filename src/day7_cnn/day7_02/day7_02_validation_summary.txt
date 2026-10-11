@@ -1,0 +1,29 @@
+============================================================
+DAY 7.2 - VALIDATION SUMMARY
+============================================================
+[Train] segments=2992 shape=(2992, 19, 65, 7)
+  min=-119.9978 max=5.7969 mean=-32.0406 std=12.0423
+  ADHD segments=1687 Control segments=1305
+[Validation] segments=563 shape=(563, 19, 65, 7)
+  min=-119.9879 max=5.6432 mean=-32.6645 std=12.2916
+  ADHD segments=296 Control segments=267
+[Test] segments=618 shape=(618, 19, 65, 7)
+  min=-119.9403 max=5.6824 mean=-31.8741 std=12.1074
+  ADHD segments=347 Control segments=271
+
+Tests:
+  [PASS] Shape validation
+  [PASS] Segment count validation
+  [PASS] Label validation
+  [PASS] NaN validation
+  [PASS] Inf validation
+  [PASS] Participant leakage
+  [PASS] Participant count
+  [PASS] Class consistency
+  [PASS] Segment label consistency
+  [PASS] Value sanity (finite)
+  [PASS] Reload validation
+
+Participant leakage intersections: 0
+Status: PASSED
+============================================================

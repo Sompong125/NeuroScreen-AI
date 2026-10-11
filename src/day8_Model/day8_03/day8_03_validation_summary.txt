@@ -1,0 +1,24 @@
+============================================================
+DAY 8.3 - VALIDATION SUMMARY
+============================================================
+Comparison source: Day 8.2 predictions (day8_02_participant_predictions.csv)
+Epochs: 8 | Best epoch: 1
+
+[PASS] Dataset loaded
+[PASS] Train shape
+[PASS] Validation shape
+[PASS] Test shape
+[PASS] No NaN
+[PASS] No Inf
+[PASS] Labels valid
+[PASS] Participant leakage = 0
+[PASS] Test participants = 18
+[PASS] ADHD participants = 9
+[PASS] Control participants = 9
+[PASS] Model output shape = (N,1)
+[PASS] Test evaluated only after training
+[PASS] Best model saved
+[PASS] All output files exist
+
+Status: PASSED
+============================================================

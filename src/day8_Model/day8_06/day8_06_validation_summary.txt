@@ -1,0 +1,24 @@
+============================================================
+DAY 8.6 - VALIDATION SUMMARY
+============================================================
+[PASS] Model loaded successfully
+[PASS] Dataset loaded successfully
+[PASS] Correct input shape
+[PASS] Test participants = 18
+[PASS] ADHD = 9
+[PASS] Control = 9
+[PASS] No NaN in attribution
+[PASS] No Inf in attribution
+[PASS] Selected participants exist
+[PASS] v25p exists
+[PASS] v6p exists
+[PASS] Last conv layer found
+[PASS] Summary CSV generated
+[PASS] Channel importance generated
+[PASS] Frequency importance generated
+[PASS] Time importance generated
+[PASS] Heatmaps generated
+[PASS] Report generated
+
+Status: PASSED
+============================================================

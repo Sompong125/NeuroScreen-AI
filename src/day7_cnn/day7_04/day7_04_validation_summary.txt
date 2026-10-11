@@ -1,0 +1,26 @@
+============================================================
+DAY 7.4 - VALIDATION SUMMARY
+============================================================
+[PASS] Dataset loaded
+[PASS] Train shape
+[PASS] Validation shape
+[PASS] Test shape
+[PASS] Label validation
+[PASS] Class weight validation
+[PASS] Participant split preserved
+[PASS] Model loaded
+[PASS] Model compiled
+[PASS] Training performed
+[PASS] Training history saved
+[PASS] Best model saved
+[PASS] Training curve saved
+[PASS] No NaN in training history
+[PASS] No Inf in training history
+[PASS] Best model reload
+
+Epochs completed: 7 | Best epoch: 2
+Best val_loss: 0.717397 | Best val_acc: 0.559503
+Test set: NOT used during training / model selection
+Final evaluation จะทำใน Day 7.5
+Status: PASSED
+============================================================

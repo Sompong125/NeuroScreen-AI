@@ -1,0 +1,49 @@
+============================================================
+DAY 7.5 - CNN EVALUATION
+============================================================
+
+MODEL:
+CNN Baseline (architecture จาก Day 7.3, train ใน Day 7.4)
+Best Epoch: 2
+Model file: day7_04_best_model.keras
+
+TEST SET:
+Participants: 18
+ADHD: 9
+Control: 9
+Segments: 618
+(ADHD segments: 347, Control segments: 271)
+
+SEGMENT-LEVEL RESULTS:
+Accuracy: 0.6036
+Precision: 0.8228
+Recall/Sensitivity: 0.3746
+Specificity: 0.8967
+F1: 0.5149
+ROC-AUC: 0.7632
+PR-AUC (additional): 0.7973
+
+PARTICIPANT-LEVEL RESULTS:
+Accuracy: 0.6111
+Precision: 0.7500
+Recall/Sensitivity: 0.3333
+Specificity: 0.8889
+F1: 0.4615
+ROC-AUC: 0.8272
+PR-AUC (additional): 0.8250
+
+CONFUSION MATRIX (segment-level):
+TP=130 TN=243 FP=28 FN=217
+
+CONFUSION MATRIX (participant-level):
+TP=3 TN=8 FP=1 FN=6
+
+IMPORTANT NOTE:
+Test set was used only for final evaluation.
+No test data was used for training or model selection.
+Threshold fixed at 0.5 (not optimized on test set).
+
+Medical disclaimer:
+Research prototype / screening support only.
+Not a medical diagnostic tool.
+============================================================

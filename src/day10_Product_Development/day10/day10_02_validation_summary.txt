@@ -1,0 +1,46 @@
+============================================================
+DAY 10.2 - PIPELINE VALIDATION SUMMARY
+Generated: 2026-10-11 21:49:15
+============================================================
+
+[1] พารามิเตอร์ที่ตรวจยืนยันได้ พร้อมแหล่งที่มา
+  fs = 128  [day5_02_preprocessing_test.py:L25 | day5_03_spectrogram_test.py:L23 | day7_02_prepare_cnn_dataset.py:L26]
+  window_samples (SEGMENT_SIZE) = 512  [day7_02_prepare_cnn_dataset.py:L27]
+  nperseg = 128  [day5_03_spectrogram_test.py:L24 | day7_02_prepare_cnn_dataset.py:L33]
+  noverlap = 64 (hop ภายใน spectrogram)  [day5_03_spectrogram_test.py:L25 | day7_02_prepare_cnn_dataset.py:L34]
+  n_channels = 19  [day5_02_preprocessing_test.py:L32 | day5_03_spectrogram_test.py:L27 | day7_02_prepare_cnn_dataset.py:L46]
+  notch_freq = 50 Hz  [day7_02_prepare_cnn_dataset.py:L31]
+  notch_q = 30.0  [day5_02_preprocessing_test.py:L30 | day7_02_prepare_cnn_dataset.py:L32]
+  threshold = 0.5  [day8_02_improved_cnn.py:L55]
+  n_freq = 65  [day7_02_prepare_cnn_dataset.py:L29]
+  n_time = 7  [day7_02_prepare_cnn_dataset.py:L30]
+  segmentation = non-overlapping 512-sample chunks  [day7_02_prepare_cnn_dataset.py: [:SEGMENT_SIZE]]
+  spectrogram call = spectrogram(             eeg[:, i], fs=FS, nperseg=NPERSEG, noverlap=NOVERLAP,             scaling="...  [day5_03_spectrogram_test.py]
+  spectrogram scaling='density', mode='psd'
+
+[2] Model input shape (ยืนยันจากไฟล์โมเดลจริง)
+  [None, 65, 7, 19]
+  ตรงกับค่าจากโค้ดต้นฉบับ: ใช่
+
+[3] ผลทดสอบแต่ละรายการ
+  [PASSED] T1 รูปร่างข้อมูลก่อนเข้าโมเดล (N, 65, 7, 19)
+  [PASSED] T2 การจัดการ input ที่ไม่ถูกต้อง
+  [PASSED] T3 การปฏิเสธข้อมูลที่มี NaN/Inf
+  [PASSED] T4 participant-level mean probability
+  [PASSED] T5 threshold 0.5 (boundary, ไม่ปรับเปลี่ยน)
+  [PASSED] T6 model input shape ตรงกับค่าที่ยืนยัน
+  [PASSED] T7 การทำนายด้วยโมเดลจริง (โครงสร้างเท่านั้น)
+  [PASSED] T8 ยืนยันว่าไม่มีการแก้ไขไฟล์เดิม
+
+[4] จุดที่ยัง BLOCKED (ห้ามเดาค่า - ต้องตรวจสอบก่อน)
+  (ไม่มี)
+
+[5] การยืนยันความสะอาดของกระบวนการ
+  - ไม่มีการแก้ไขไฟล์ Day 5-9 (ตรวจจาก mtime ก่อน/หลัง): ยืนยัน
+  - ไม่มีการเทรนหรือสร้างโมเดลใหม่: ยืนยัน (โหลดแบบ inference เท่านั้น)
+  - ไม่ได้ใช้ adhdata.csv ในการทดสอบ: ยืนยัน (ใช้ข้อมูลสังเคราะห์เฉพาะทดสอบโครงสร้าง)
+  - ผลจากข้อมูลสังเคราะห์ไม่ถูกอ้างเป็นประสิทธิภาพการคัดกรอง: ยืนยัน
+
+============================================================
+DAY 10.2 STATUS: PASSED
+============================================================

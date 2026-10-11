@@ -1,0 +1,23 @@
+============================================================
+DAY 8.2 - VALIDATION SUMMARY
+============================================================
+Baseline comparison source: Day 7.5 predictions (day7_05_participant_predictions.csv)
+Epochs: 17 | Best epoch: 10
+
+[PASS] Dataset loaded
+[PASS] Train shape correct
+[PASS] Validation shape correct
+[PASS] Test shape correct
+[PASS] No NaN
+[PASS] No Inf
+[PASS] Labels valid
+[PASS] Participant leakage = 0
+[PASS] Test participants = 18
+[PASS] ADHD participants = 9
+[PASS] Control participants = 9
+[PASS] Model output shape correct
+[PASS] Test evaluated only after training
+[PASS] All output files exist
+
+Status: PASSED
+============================================================

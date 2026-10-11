@@ -1,0 +1,145 @@
+============================================================
+DAY 9.2 - FINAL MODEL SELECTION REPORT
+============================================================
+
+1. Objective
+Aggregate all experimental evidence from Day 7 to Day 9.1 and select
+a Final Model candidate for the NeuroScreen AI research prototype.
+This is an analysis-only stage: no model was trained, no architecture
+was changed, no threshold was optimized.
+
+2. Models evaluated
+- Baseline CNN (Day 7 / evaluated Day 7.5) - ~107K parameters
+- Improved CNN (Day 8.2) - ~107K parameters (same architecture,
+  improved training configuration)
+- ResNet-18 (Day 8.3) - ~11.2M parameters (scratch-trained)
+
+3. Dataset and test design
+- Same participant-level split for all models (seed 42):
+  Train 85 participants, Validation 18, Test 18 (9 ADHD / 9 Control)
+- Participant leakage = 0
+- Participant-level prediction = mean segment probability, threshold 0.5
+- The test set was used only for final evaluation of each model;
+  no test-based tuning was performed.
+
+4. Single-seed model comparison (participant-level, same 18-person test set)
+Model           Accuracy  Precision  Recall    Specificity F1        ROC-AUC   PR-AUC
+Baseline CNN    0.6111    0.7500     0.3333    0.8889      0.4615    0.8272    0.8250
+Improved CNN    0.8889    1.0000     0.7778    1.0000      0.8750    0.8889    0.9233
+ResNet-18       0.5000    0.5000     1.0000    0.0000      0.6667    0.7407    0.7353
+
+5. Multi-seed robustness (Improved CNN, Day 9.1; source: file)
+Seed    Accuracy  Precision  Recall    Specificity F1        ROC-AUC   PR-AUC
+42      0.8889    1.0000     0.7778    1.0000      0.8750    0.8889    0.9233
+52      0.7778    0.7778     0.7778    0.7778      0.7778    0.9383    0.9437
+62      0.7222    0.7000     0.7778    0.6667      0.7368    0.9136    0.9355
+72      0.7222    0.7500     0.6667    0.7778      0.7059    0.8765    0.8644
+82      0.8333    0.8750     0.7778    0.8889      0.8235    0.9259    0.9278
+
+Summary (Mean +/- Std across 5 seeds):
+Accuracy       Mean=0.7889  Std=0.0724
+Precision      Mean=0.8206  Std=0.1189
+Recall         Mean=0.7556  Std=0.0497
+Specificity    Mean=0.8222  Std=0.1267
+F1             Mean=0.7838  Std=0.0675
+ROC_AUC        Mean=0.9086  Std=0.0256
+PR_AUC         Mean=0.9189  Std=0.0315
+
+Key observations:
+- Ranking-based performance (ROC-AUC, PR-AUC) was highly stable across
+  seeds (ROC-AUC mean 0.9086, std 0.0256).
+- Recall (sensitivity) was relatively stable: the model detected
+  roughly 7 of 9 ADHD participants in most seeds.
+- Threshold-dependent metrics (accuracy, precision, specificity)
+  fluctuated more, which is expected with a test set of 18 participants
+  where one participant changes accuracy by about 5.6 percentage points.
+- The single-seed result of 88.89% accuracy (seed 42) is reported
+  together with the multi-seed distribution, not as a standalone figure.
+
+6. Error analysis (participant-level)
+Baseline CNN: TP=3 TN=8 FP=1 FN=6
+  Conservative behaviour; many false negatives.
+  False negatives: v183, v198, v219, v24p, v25p, v6p
+Improved CNN: TP=7 TN=9 FP=0 FN=2
+  Best balance between ADHD sensitivity and Control specificity among
+  the three models on this test split; zero false positives.
+  False negatives: v25p, v6p
+ResNet-18: TP=9 TN=0 FP=9 FN=0
+  Predicted all 18 participants as ADHD at threshold 0.5, resulting in
+  9 false positives and specificity = 0.
+
+7. Model complexity
+- Baseline CNN: ~107K parameters
+- Improved CNN: ~107K parameters
+- ResNet-18: ~11.2M parameters (~100x larger)
+Complexity is discussed as a supporting criterion only. A smaller model
+is not automatically better; the relevant observation is that the
+Improved CNN achieved strong experimental results without the much
+larger parameter count of ResNet-18.
+
+8. Interpretability (Day 8.6, Improved CNN, Grad-CAM)
+Model attribution was observed in specific frequency-time regions and
+EEG channels (activation-magnitude proxy; model-focused regions only):
+- Correct ADHD v3p: P(ADHD)=0.7180, top frequency 6 Hz, top channel Fp1
+- Correct Control v42p: P(ADHD)=0.2743, top frequency 6 Hz, top channel P4
+- False Negative v25p: P(ADHD)=0.2097, top frequency 6 Hz, top channel Fz
+- False Negative v6p: P(ADHD)=0.2528, top frequency 9 Hz, top channel Fp2
+- Threshold case v140: P(ADHD)=0.4649, top frequency 9 Hz, top channel Fz
+These are descriptions of model attribution only. They are NOT
+biomarkers and no causal or clinical interpretation is made.
+Day 8.6 limitation: the time-importance output had equal importance
+values across all 7 time bins, so no strong temporal importance
+conclusion should be made from that analysis.
+
+9. Strengths of Improved CNN
+- Best balance of sensitivity and specificity among the three models
+  on this test split (0 false positives in the single-seed evaluation)
+- Substantially better participant-level performance than Baseline CNN
+- Stable ranking performance across 5 random seeds (ROC-AUC ~0.91)
+- Relatively stable sensitivity across seeds (~7 of 9 ADHD detected)
+- ~100x smaller than ResNet-18 while performing better here
+- Interpretable via Grad-CAM (Day 8.6)
+
+10. Limitations
+- Test set contains only 18 participants (9 ADHD / 9 Control);
+  a single participant noticeably changes the metrics.
+- Single dataset; no external validation.
+- Threshold fixed at 0.5; no threshold optimization performed.
+- Multi-seed evidence exists only for the Improved CNN.
+- All results are experimental research results, not clinical
+  diagnostic performance.
+
+11. Final model decision
+The Improved CNN showed the strongest balance among the evaluated
+models: better participant-level performance than the Baseline CNN,
+zero false positives in the single-seed evaluation, stable ranking
+ability and reasonably stable sensitivity across seeds, and far fewer
+parameters than ResNet-18, which collapsed to an all-ADHD prediction
+pattern on this test split.
+
+Therefore:
+
+  Improved CNN is selected as the Final Model candidate
+  for the current research prototype.
+
+This selection is an experimental research decision. The model is NOT
+clinically validated and must not be described as a diagnostic model,
+a clinical-grade model, or a proven ADHD detector. Conclusions remain
+limited by the small test set and the absence of external validation.
+
+12. Recommended next stage
+Move to PRODUCT DEVELOPMENT, with the following pipeline:
+
+EEG input
+  -> Preprocessing
+  -> Segmentation
+  -> Spectrogram generation
+  -> Improved CNN
+  -> Participant-level aggregation
+  -> Screening support result
+  -> Visualization
+  -> Expert review
+
+The AI must remain a decision-support / screening-support tool,
+not a diagnostic replacement.
+============================================================

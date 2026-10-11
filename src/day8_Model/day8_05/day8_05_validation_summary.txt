@@ -1,0 +1,22 @@
+============================================================
+DAY 8.5 - VALIDATION SUMMARY
+============================================================
+[PASS] Required input exists
+[PASS] Correct number of participants = 18
+[PASS] ADHD = 9
+[PASS] Control = 9
+[PASS] No duplicated participant IDs
+[PASS] Valid True_Class values
+[PASS] Valid Predicted_Class values
+[PASS] Probabilities between 0 and 1
+[PASS] No NaN
+[PASS] No Inf
+[PASS] Threshold = 0.5
+[PASS] FN analysis correct
+[PASS] FP analysis correct
+[PASS] Output CSV files created
+[PASS] PNG files created
+[PASS] Report created
+
+Status: PASSED
+============================================================

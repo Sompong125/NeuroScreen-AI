@@ -1,0 +1,41 @@
+============================================================
+DAY 7.5 - VALIDATION SUMMARY
+============================================================
+Model: day7_04_best_model.keras (Best Epoch 2)
+Test set: 618 segments, 18 participants
+Segment-level evaluation: DONE
+Participant-level evaluation: DONE (mapping verified)
+Leakage check: Train∩Test / Val∩Test = 0
+Prediction validation: probabilities in [0,1], no NaN/Inf
+
+[PASS] Dataset loaded
+[PASS] Test shape
+[PASS] Model loaded
+[PASS] Model prediction completed
+[PASS] Prediction shape
+[PASS] Prediction probability range
+[PASS] No NaN
+[PASS] No Inf
+[PASS] Test labels valid
+[PASS] Test participant count
+[PASS] Test class distribution
+[PASS] Participant leakage = 0
+[PASS] Segment prediction count = 618
+[PASS] Participant mapping complete
+[PASS] Participant count = 18
+[PASS] ADHD participants = 9
+[PASS] Control participants = 9
+[PASS] All test segments mapped
+[PASS] No duplicate segment IDs
+
+Output files:
+  day7_05_segment_predictions.csv
+  day7_05_participant_predictions.csv
+  day7_05_metrics.txt
+  day7_05_confusion_matrix.png
+  day7_05_roc_curve.png
+  day7_05_participant_confusion_matrix.png
+  day7_05_validation_summary.txt
+
+Overall status: PASSED
+============================================================

@@ -1,0 +1,19 @@
+============================================================
+DAY 8.4 - VALIDATION SUMMARY
+============================================================
+[PASS] Required input files exist
+[PASS] Test participant count = 18
+[PASS] ADHD participants = 9
+[PASS] Control participants = 9
+[PASS] No duplicated participant IDs
+[PASS] Predicted classes are valid
+[PASS] True classes are valid
+[PASS] Probabilities between 0 and 1
+[PASS] No NaN probabilities
+[PASS] No Inf probabilities
+[PASS] All models use same participant IDs
+[PASS] Metrics calculated without errors
+[PASS] Output files created successfully
+
+Status: PASSED
+============================================================

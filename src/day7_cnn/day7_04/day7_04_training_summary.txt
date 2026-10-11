@@ -1,0 +1,61 @@
+============================================================
+DAY 7.4 - CNN TRAINING
+============================================================
+Dataset
+
+Train segments: 2992
+Validation segments: 563
+Test segments: 618 (ไม่ได้ใช้ระหว่าง training)
+Train participants: 85
+Validation participants: 18
+Test participants: 18
+Train ADHD segments: 1687
+Train Control segments: 1305
+Class weights: Control=1.146360, ADHD=0.886781
+Class weight source: sklearn compute_class_weight(balanced)
+
+------------------------------------------------------------
+MODEL
+------------------------------------------------------------
+Architecture: CNN Baseline (Day 7.3, ไม่แก้ไข)
+Input: 65 x 7 x 19
+Total parameters: 107073
+Trainable parameters: 106625
+Non-trainable parameters: 448
+
+------------------------------------------------------------
+TRAINING
+------------------------------------------------------------
+Optimizer: Adam
+Learning rate: 0.001
+Loss: binary_crossentropy
+Metrics: accuracy, auc
+Batch size: 32
+Maximum epochs: 30
+Early stopping: Yes
+Patience: 5
+Best model: day7_04_best_model.keras
+Best epoch: 2
+Training epochs completed: 7
+Training time: 28.2 s (~4.0 s/epoch)
+
+------------------------------------------------------------
+RESULT
+------------------------------------------------------------
+Best training loss: 0.557117
+Best validation loss: 0.717397
+Best training accuracy: 0.725267
+Best validation accuracy: 0.559503
+Best training AUC: 0.792198
+Best validation AUC: 0.772187
+
+------------------------------------------------------------
+MODEL STATUS
+------------------------------------------------------------
+Training performed: YES
+Model status: TRAINED
+Best model saved: YES
+
+หมายเหตุ: นี่เป็น ADHD classification experiment / research prototype
+สำหรับ decision support เท่านั้น ไม่ใช่เครื่องมือวินิจฉัยทางการแพทย์
+============================================================

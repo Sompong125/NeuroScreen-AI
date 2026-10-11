@@ -1,0 +1,21 @@
+============================================================
+DAY 8.1 - VALIDATION SUMMARY
+============================================================
+[PASS] File loaded
+[PASS] Required columns
+[PASS] Participant count = 18
+[PASS] ADHD participants = 9
+[PASS] Control participants = 9
+[PASS] Unique Participant_ID
+[PASS] Valid labels
+[PASS] Probability range
+[PASS] No NaN
+[PASS] No Inf
+[PASS] Segments > 0
+[PASS] Probability analysis completed
+[PASS] Error analysis completed
+[PASS] Segment count analysis completed
+[PASS] Report saved
+
+STATUS: PASSED
+============================================================

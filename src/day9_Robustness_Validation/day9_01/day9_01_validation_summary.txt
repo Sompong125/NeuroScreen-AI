@@ -1,0 +1,24 @@
+============================================================
+DAY 9.1 - VALIDATION SUMMARY
+============================================================
+[PASS] Dataset loaded successfully
+[PASS] Correct input shapes
+[PASS] Correct participant split
+[PASS] Participant leakage = 0
+[PASS] Train class counts correct
+[PASS] Validation class counts correct
+[PASS] Test class counts correct
+[PASS] No NaN
+[PASS] No Inf
+[PASS] All probabilities in [0,1]
+[PASS] Exactly 5 seeds completed
+[PASS] Each seed has training result
+[PASS] Each seed has validation result
+[PASS] Each seed has test result
+[PASS] Mean/std calculations valid
+[PASS] All expected output files generated
+[PASS] Saved models exist
+[PASS] Summary files readable
+
+Status: PASSED
+============================================================
