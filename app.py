@@ -40,7 +40,13 @@ from eeg_report_utils import (
     format_assessment,
     new_report_meta,
     build_pdf_report,
+    compute_signal_quality,
+    collect_provenance,
+    sha256_bytes,
+    sha256_file,
+    CRITERIA_LINES,
 )
+import day10_02_inference_pipeline as _pipeline_mod  # อ่าน MODEL_PATH เท่านั้น (ถ้ามี)
 
 # ------------------------------------------------------------------
 # ค่าคงที่ (ยืนยันแล้วใน Day 10.2 จากโค้ดฝึก Day 5/7/8.2)
@@ -407,6 +413,12 @@ def validate_uploaded_csv(uploaded):
 # ------------------------------------------------------------------
 # ส่วนประกอบของหน้า EEG Input (วิเคราะห์ + ผลลัพธ์ย้ายมารวมในหน้าเดียว)
 # ------------------------------------------------------------------
+@st.cache_resource(show_spinner=False)
+def _model_sha256(path_str, mtime):
+    """hash ไฟล์โมเดล (cache ตาม path + เวลาแก้ไขไฟล์ เพื่อไม่อ่านไฟล์ซ้ำทุกครั้ง)"""
+    return sha256_file(path_str)
+
+
 def render_analysis_section(eeg):
     """เนื้อหาเดิมของหน้า Screening Analysis (ตรรกะและการเรียก run_inference เหมือนเดิม)"""
     st.subheader("รันการวิเคราะห์")
@@ -438,6 +450,16 @@ def render_analysis_section(eeg):
         bar.progress(100, text="เสร็จสิ้น")
         st.session_state["last_result"] = result
         st.session_state["report_meta"] = new_report_meta()
+        try:
+            model_path = getattr(_pipeline_mod, "MODEL_PATH", None)
+            mtime = Path(model_path).stat().st_mtime if model_path else 0
+            csvh = st.session_state.get("eeg_csv_hash") or {}
+            st.session_state["report_provenance"] = collect_provenance(
+                pipe["params"], model_path,
+                _model_sha256(str(model_path), mtime) if model_path else None,
+                csvh.get("sha256"), csvh.get("size"))
+        except Exception:
+            st.session_state.pop("report_provenance", None)  # รายงานยังสร้างได้โดยไม่มีหน้า provenance
         st.success(f"วิเคราะห์เสร็จใน **{elapsed:.2f} วินาที** — ดูผลด้านล่าง")
     except PipelineBlockedError as e:
         bar.empty()
@@ -569,6 +591,50 @@ def render_eeg_section(eeg):
     if view.n_nonfinite:
         st.warning(f"พบค่าที่ไม่ใช่ตัวเลขจำกัด {view.n_nonfinite} ค่าในช่วงที่แสดง (แสดงเป็นช่องว่าง)")
 
+    sig = st.session_state.get("eeg_file_sig")
+    cached_q = st.session_state.get("eeg_quality")
+    if cached_q is None or cached_q[0] != sig:
+        try:
+            win = int((load_pipeline_once().get("params") or {}).get("window_samples") or MIN_SAMPLES)
+            st.session_state["eeg_quality"] = (
+                sig, compute_signal_quality(eeg, EEG_CHANNELS, FS_HZ, window_samples=win))
+        except Exception:
+            st.session_state.pop("eeg_quality", None)
+    cached_q = st.session_state.get("eeg_quality")
+    render_quality_section(cached_q[1] if cached_q else None)
+
+
+def render_quality_section(q):
+    """ตัวชี้วัดคุณภาพสัญญาณแบบ heuristic (ข้อมูลประกอบ ไม่มีผลต่อโมเดล)"""
+    st.subheader("ตัวชี้วัดคุณภาพสัญญาณ (heuristic)")
+    if q is None:
+        st.info("ไม่สามารถคำนวณตัวชี้วัดคุณภาพสัญญาณได้")
+        return
+    st.caption(q.summary_line() + " — ข้อมูลประกอบเท่านั้น ไม่มีผลต่อการประเมินของโมเดล")
+    if q.flagged_channels:
+        st.warning("ช่องที่ถูกติดธง: " + "; ".join(
+            f"{c.name} ({', '.join(c.flags)})" for c in q.flagged_channels))
+    else:
+        st.info("ไม่พบช่องที่ถูกติดธงตามเกณฑ์ด้านล่าง (ไม่ได้หมายความว่าสัญญาณดี ควรให้ผู้เชี่ยวชาญดูกราฟดิบ)")
+    with st.expander("รายละเอียดรายช่อง เกณฑ์ และเซกเมนต์ที่ติดธง"):
+        st.dataframe(
+            pd.DataFrame([{
+                "Channel": c.name, "Robust SD": c.robust_sigma,
+                "Flat %": c.flat_fraction * 100,
+                "Extreme %": None if c.outlier_fraction is None else c.outlier_fraction * 100,
+                "Rel. amp.": c.rel_amplitude, "Flags": "; ".join(c.flags),
+            } for c in q.channels]),
+            width="stretch", hide_index=True)
+        if q.flagged_segments:
+            st.dataframe(
+                pd.DataFrame([{"Segment": k, "Start (s)": k * q.window_samples / q.fs,
+                               "Reasons": " | ".join(r)} for k, r in q.flagged_segments]),
+                width="stretch", hide_index=True)
+        else:
+            st.write("ไม่มีเซกเมนต์ที่ติดธง")
+        for line in CRITERIA_LINES:
+            st.caption("• " + line)
+
 
 def render_pdf_section(summary):
     """ปุ่มดาวน์โหลดรายงาน PDF — ใช้ผลและข้อมูลกราฟชุดเดียวกับที่แสดงบนหน้าจอ"""
@@ -583,7 +649,11 @@ def render_pdf_section(summary):
     cached = st.session_state.get("report_pdf")
     if cached is None or cached.get("report_id") != meta["report_id"]:
         try:
-            data = build_pdf_report(view, summary, meta)
+            q = st.session_state.get("eeg_quality")
+            data = build_pdf_report(
+                view, summary, meta,
+                quality=q[1] if q else None,
+                provenance=st.session_state.get("report_provenance"))
         except Exception:
             st.session_state.pop("report_pdf", None)
             st.error("สร้างรายงาน PDF ไม่สำเร็จ ผลการประเมินบนหน้าจอยังใช้ได้ตามปกติ "
@@ -592,6 +662,10 @@ def render_pdf_section(summary):
         cached = {"report_id": meta["report_id"], "bytes": data}
         st.session_state["report_pdf"] = cached
 
+    prov = st.session_state.get("report_provenance")
+    if prov:
+        with st.expander("ที่มาของผลและพารามิเตอร์ (ข้อมูลเดียวกับหน้า 3 ของ PDF)"):
+            st.json(prov)
     st.caption("รายงานสร้างในหน่วยความจำจากผลการประเมินเดียวกับที่แสดงด้านบน "
                "ไม่มีการบันทึกไฟล์ลงดิสก์ และไม่มีชื่อหรือข้อมูลระบุตัวบุคคล")
     st.download_button(
@@ -602,7 +676,7 @@ def render_pdf_section(summary):
     )
 
 
-RESULT_KEYS = ("last_result", "report_meta", "report_pdf")
+RESULT_KEYS = ("last_result", "report_meta", "report_pdf", "report_provenance")
 
 
 def clear_result_state():
@@ -613,7 +687,7 @@ def clear_result_state():
 
 def clear_eeg_state():
     """ล้างข้อมูลและผลลัพธ์ของไฟล์ก่อนหน้า (กันแสดงผลของไฟล์เก่าคู่กับไฟล์ใหม่)"""
-    for k in ("current_eeg", "eeg_file_sig", "eeg_view") + RESULT_KEYS:
+    for k in ("current_eeg", "eeg_file_sig", "eeg_view", "eeg_quality", "eeg_csv_hash") + RESULT_KEYS:
         st.session_state.pop(k, None)
 
 
@@ -645,6 +719,8 @@ def _eeg_input_body(flags):
         clear_result_state()
         st.session_state.pop("current_eeg", None)
         st.session_state.pop("eeg_view", None)
+        st.session_state.pop("eeg_quality", None)
+        st.session_state.pop("eeg_csv_hash", None)
         st.session_state["eeg_file_sig"] = sig
 
     if uploaded.size > MAX_UPLOAD_BYTES:
@@ -668,6 +744,10 @@ def _eeg_input_body(flags):
 
     eeg = df[EEG_CHANNELS].to_numpy(dtype=np.float64)
     st.session_state["current_eeg"] = eeg
+    if (st.session_state.get("eeg_csv_hash") or {}).get("sig") != sig:
+        raw_bytes = uploaded.getvalue()
+        st.session_state["eeg_csv_hash"] = {
+            "sig": sig, "sha256": sha256_bytes(raw_bytes), "size": len(raw_bytes)}
     flags["valid"] = True
     st.success("✅ โครงสร้างไฟล์ถูกต้อง")
 

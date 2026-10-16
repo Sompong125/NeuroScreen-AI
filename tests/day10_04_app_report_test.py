@@ -8,6 +8,7 @@ tests/day10_02_pipeline_test.py.
 
 Run from project root:  python -m pytest tests/day10_04_app_report_test.py -v
 """
+import hashlib
 import io
 import sys
 import types
@@ -45,8 +46,14 @@ class _Stub:
     probs = np.array([0.30, 0.40])
 
 
+_MODEL_FILE = None
+
+
 @pytest.fixture()
-def stub(monkeypatch):
+def stub(monkeypatch, tmp_path_factory):
+    global _MODEL_FILE
+    _MODEL_FILE = tmp_path_factory.mktemp("model") / "fake_model.keras"
+    _MODEL_FILE.write_bytes(b"fake-model-bytes")
     _Stub.calls, _Stub.mode, _Stub.probs = 0, "ok", np.array([0.30, 0.40])
     m = types.ModuleType("day10_02_inference_pipeline")
 
@@ -57,7 +64,10 @@ def stub(monkeypatch):
 
     m.PipelineBlockedError = PipelineBlockedError
     m.collect_evidence = lambda: ({}, {}, {})
-    m.resolve_parameters = lambda e, s: ({"channels": list(CH)}, [], [], s)
+    m.MODEL_PATH = _MODEL_FILE
+    m.resolve_parameters = lambda e, s: ({
+        "channels": list(CH), "fs": 128, "window_samples": 512, "notch_freq": 50,
+        "notch_q": 30, "nperseg": 128, "noverlap": 64, "threshold": 0.5}, [], [], s)
     m.readiness = lambda p, s: []
 
     def run_inference(eeg, params, scans):
@@ -203,7 +213,7 @@ def test_pdf_matches_screen_and_no_extra_inference(stub):
     except ImportError:
         pytest.skip("pypdf not installed")
     reader = pypdf.PdfReader(io.BytesIO(pdf))
-    assert len(reader.pages) == 2
+    assert len(reader.pages) == 3                # summary, EEG chart, quality+provenance
     text = "\n".join(p.extract_text() or "" for p in reader.pages)
     assert f"{r['mean_probability']:.4f}" in text
     assert str(r["n_segments"]) in text
@@ -238,6 +248,49 @@ def test_nothing_written_to_disk(stub, tmp_path, monkeypatch):
     at = _upload(_app(), _csv())
     _run_btn(at).click().run()
     assert list(tmp_path.glob("**/*.pdf")) == [] and list(tmp_path.glob("**/*.csv")) == []
+
+
+# ---------------- signal quality + provenance ----------------
+def test_quality_computed_after_upload_and_flags_flat_channel(stub):
+    import pandas as pd
+    df = pd.read_csv(io.BytesIO(_csv()))
+    df["Cz"] = 5.0
+    at = _upload(_app(), df.to_csv(index=False).encode())
+    q = at.session_state["eeg_quality"][1]
+    assert any(c.name == "Cz" and c.flags for c in q.channels)
+    assert stub.calls == 0
+    assert "Cz" in "\n".join(w.value for w in at.warning)
+
+
+def test_provenance_hashes_match_real_bytes(stub):
+    data = _csv()
+    at = _upload(_app(), data)
+    _run_btn(at).click().run()
+    prov = at.session_state["report_provenance"]
+    assert prov["input"]["csv_sha256"] == hashlib.sha256(data).hexdigest()
+    assert prov["input"]["csv_size_bytes"] == len(data)
+    assert prov["model"]["sha256"] == hashlib.sha256(b"fake-model-bytes").hexdigest()
+    assert prov["model"]["file_name"] == "fake_model.keras"
+    assert prov["parameters"]["threshold"] == 0.5
+    assert prov["parameters"]["spec_mode"] == "not available"   # never invented
+
+
+def test_new_file_clears_quality_hash_and_provenance(stub):
+    at = _upload(_app(), _csv(seed=1))
+    _run_btn(at).click().run()
+    _upload(at, _csv(seed=2), name="b.csv")
+    assert "report_provenance" not in at.session_state
+    assert at.session_state["eeg_csv_hash"]["sha256"] == hashlib.sha256(_csv(seed=2)).hexdigest()
+    assert at.session_state["eeg_quality"][0] == at.session_state["eeg_file_sig"]
+
+
+def test_pdf_still_built_when_provenance_fails(stub, monkeypatch):
+    import eeg_report_utils as u
+    monkeypatch.setattr(u, "collect_provenance", lambda *a, **k: (_ for _ in ()).throw(RuntimeError("x")))
+    at = _upload(_app(), _csv())
+    _run_btn(at).click().run()
+    assert not at.exception and len(_dl_buttons(at)) == 1
+    assert "report_provenance" not in at.session_state
 
 
 # ---------------- regression: existing pages ----------------

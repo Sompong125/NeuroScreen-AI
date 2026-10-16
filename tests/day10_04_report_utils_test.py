@@ -2,6 +2,7 @@
 
 Run from project root:  python -m pytest tests/day10_04_report_utils_test.py -v
 """
+import hashlib
 import io
 import sys
 from pathlib import Path
@@ -206,3 +207,103 @@ def test_pdf_failure_propagates_so_caller_can_handle(monkeypatch):
     monkeypatch.setattr(u, "_summary_page", lambda *a, **k: (_ for _ in ()).throw(RuntimeError("boom")))
     with pytest.raises(RuntimeError):
         u.build_pdf_report(v, s, u.new_report_meta())
+
+
+# ---------------- signal quality ----------------
+def test_quality_clean_data_has_no_flags():
+    q = u.compute_signal_quality(np.random.default_rng(3).normal(size=(2048, 19)), CH, FS)
+    assert q.flagged_channels == () and q.flagged_segments == () and q.n_segments == 4
+
+
+def test_quality_flags_flat_high_amp_and_burst():
+    rng = np.random.default_rng(4)
+    x = rng.normal(size=(512 * 4, 19)) * 20
+    x[:, 3] = 5.0                       # flat
+    x[:, 7] *= 10                       # high amplitude
+    x[600:640, 12] += 800               # burst inside segment 1
+    q = u.compute_signal_quality(x, CH, FS)
+    by = {c.name: c.flags for c in q.channels}
+    assert "flat / constant signal" in by["F4"]
+    assert "high amplitude vs other channels" in by["P4"]
+    assert q.flagged_segments and q.flagged_segments[0][0] == 1
+    assert "T7" in q.flagged_segments[0][1][0]
+
+
+def test_quality_is_scale_free():
+    x = np.random.default_rng(5).normal(size=(2048, 19))
+    a = u.compute_signal_quality(x, CH, FS)
+    b = u.compute_signal_quality(x * 1e6 + 1e3, CH, FS)
+    assert [c.flags for c in a.channels] == [c.flags for c in b.channels]
+
+
+def test_quality_nonfinite_does_not_crash_and_is_flagged():
+    x = np.random.default_rng(6).normal(size=(1024, 19))
+    x[5, 2] = np.nan
+    x[9, 4] = np.inf
+    q = u.compute_signal_quality(x, CH, FS)
+    assert q.n_nonfinite == 2
+    assert "non-finite values present" in {f for c in q.channels for f in c.flags}
+
+
+@pytest.mark.parametrize("bad", [np.zeros((512, 18)), np.zeros(512), np.full((512, 19), np.nan)])
+def test_quality_rejects_malformed(bad):
+    with pytest.raises(ValueError):
+        u.compute_signal_quality(bad, CH, FS)
+
+
+def test_quality_does_not_modify_input():
+    x = np.random.default_rng(7).normal(size=(1024, 19))
+    x[3, 3] = np.nan
+    before = x.copy()
+    u.compute_signal_quality(x, CH, FS)
+    np.testing.assert_array_equal(np.nan_to_num(x, nan=-9), np.nan_to_num(before, nan=-9))
+
+
+# ---------------- provenance ----------------
+def test_sha256_helpers_match_hashlib(tmp_path):
+    f = tmp_path / "m.bin"
+    f.write_bytes(b"abc" * 100000)
+    assert u.sha256_file(f) == hashlib.sha256(b"abc" * 100000).hexdigest()
+    assert u.sha256_bytes(b"x") == hashlib.sha256(b"x").hexdigest()
+    assert u.sha256_file(tmp_path / "missing") is None
+
+
+def test_provenance_reports_unknowns_as_not_available_never_guesses():
+    p = u.collect_provenance({"fs": 128, "threshold": 0.5})
+    assert p["parameters"]["fs"] == 128 and p["parameters"]["notch_q"] == u.NA
+    assert p["model"]["sha256"] == u.NA and p["input"]["csv_sha256"] == u.NA
+    assert u.collect_provenance(None)["parameters"]["fs"] == u.NA
+
+
+def test_pdf_page3_contains_hashes_and_flags():
+    pypdf = pytest.importorskip("pypdf")
+    x = _eeg()
+    x[:, 3] = 5.0
+    v = u.build_eeg_view(x, CH, FS)
+    q = u.compute_signal_quality(x, CH, FS)
+    msha, csha = hashlib.sha256(b"m").hexdigest(), hashlib.sha256(b"c").hexdigest()
+    prov = u.collect_provenance({"fs": 128}, "/a/model.keras", msha, csha, 42)
+    data = u.build_pdf_report(v, u.format_assessment(_result()), u.new_report_meta(), q, prov)
+    pages = pypdf.PdfReader(io.BytesIO(data)).pages
+    assert len(pages) == 3
+    t3 = pages[2].extract_text().replace("\n", "").replace(" ", "")
+    assert msha in t3 and csha in t3 and "model.keras" in t3
+    assert "flat/constantsignal" in t3
+    assert "1of19channelsflagged" in pages[0].extract_text().replace(" ", "")
+
+
+def test_pdf_without_quality_or_provenance_stays_two_pages():
+    pypdf = pytest.importorskip("pypdf")
+    v = u.build_eeg_view(_eeg(), CH, FS)
+    data = u.build_pdf_report(v, u.format_assessment(_result()), u.new_report_meta())
+    assert len(pypdf.PdfReader(io.BytesIO(data)).pages) == 2
+
+
+def test_pdf_english_disclaimer_comes_first():
+    pypdf = pytest.importorskip("pypdf")
+    v = u.build_eeg_view(_eeg(), CH, FS)
+    t = pypdf.PdfReader(io.BytesIO(u.build_pdf_report(
+        v, u.format_assessment(_result()), u.new_report_meta()))).pages[0].extract_text()
+    assert "not a medical diagnosis" in t
+    if u._find_thai_font_path():          # Thai block only exists when a Thai font is installed
+        assert t.index("not a medical diagnosis") < t.index("NeuroScreen AI เป็น")
