@@ -34,6 +34,13 @@ from day10_02_inference_pipeline import (
     run_inference,
     PipelineBlockedError,
 )
+from eeg_report_utils import (
+    build_eeg_view,
+    plot_eeg_channels,
+    format_assessment,
+    new_report_meta,
+    build_pdf_report,
+)
 
 # ------------------------------------------------------------------
 # ค่าคงที่ (ยืนยันแล้วใน Day 10.2 จากโค้ดฝึก Day 5/7/8.2)
@@ -422,6 +429,7 @@ def render_analysis_section(eeg):
     if not st.button("▶ รันการวิเคราะห์", type="primary"):
         return
 
+    clear_result_state()  # เริ่มรอบใหม่: ไม่ให้ผลเก่าค้างหากรอบนี้ล้มเหลว
     bar = st.progress(10, text="กำลังแบ่งเซกเมนต์และ preprocessing...")
     try:
         t0 = time.time()
@@ -429,6 +437,7 @@ def render_analysis_section(eeg):
         elapsed = time.time() - t0
         bar.progress(100, text="เสร็จสิ้น")
         st.session_state["last_result"] = result
+        st.session_state["report_meta"] = new_report_meta()
         st.success(f"วิเคราะห์เสร็จใน **{elapsed:.2f} วินาที** — ดูผลด้านล่าง")
     except PipelineBlockedError as e:
         bar.empty()
@@ -445,6 +454,12 @@ def render_results_section(result):
     """เนื้อหาเดิมของหน้า Results (ใช้ข้อมูลจากผลลัพธ์จริงเท่านั้น)"""
     st.divider()
     st.subheader("ผลลัพธ์")
+    try:
+        summary = format_assessment(result)
+    except ValueError as e:
+        st.error(f"ผลการประเมินไม่สมบูรณ์ จึงไม่แสดงผล: {e}")
+        return
+    st.caption("Model assessment result — ต้นแบบสำหรับสนับสนุนการคัดกรองในงานวิจัย ไม่ใช่การวินิจฉัยโรค")
     with st.expander("คำชี้แจงสำคัญก่อนอ่านผลลัพธ์", expanded=True):
         st.markdown(DISCLAIMER)
 
@@ -465,6 +480,10 @@ def render_results_section(result):
         with st.container(border=True):
             st.metric("Threshold (คงที่)", f"{thr:.2f}")
 
+    st.markdown(
+        f"ความน่าจะเป็นเฉลี่ยจากโมเดล: **{summary.percent_text}** "
+        "(ค่าจากโมเดล ไม่ใช่ความมั่นใจทางคลินิก)"
+    )
     st.markdown(
         f"การบันทึกนี้ถูกแบ่งเป็น **{n_seg} เซกเมนต์** (4 วินาที ไม่ซ้อนทับ) "
         f"ความน่าจะเป็นระดับ participant คือค่าเฉลี่ยของเซกเมนต์ทั้งหมด"
@@ -514,10 +533,87 @@ def render_results_section(result):
             hide_index=True,
         )
 
+    render_pdf_section(summary)
+
+
+def render_eeg_section(eeg):
+    """กราฟ EEG 19 ช่อง จากข้อมูลดิบที่อัปโหลด (ไม่ผ่าน preprocessing ของโมเดล)"""
+    st.subheader("กราฟสัญญาณ EEG")
+    try:
+        view = build_eeg_view(eeg, EEG_CHANNELS, FS_HZ)
+        fig = plot_eeg_channels(view)
+    except Exception as e:
+        st.session_state.pop("eeg_view", None)
+        st.warning(f"ไม่สามารถแสดงกราฟ EEG ได้: {e}")
+        return
+    st.session_state["eeg_view"] = view
+
+    pipe_channels = (load_pipeline_once().get("params") or {}).get("channels")
+    if pipe_channels and list(pipe_channels) != list(EEG_CHANNELS):
+        st.warning("ลำดับชื่อช่องในหน้าเว็บไม่ตรงกับที่ pipeline ยืนยันจากโค้ดฝึก — "
+                   "ชื่อช่องในกราฟอาจไม่ถูกต้อง กรุณาตรวจสอบก่อนใช้งาน")
+
+    st.pyplot(fig)
+    if view.is_partial:
+        st.caption(
+            f"กราฟแสดงเฉพาะ {view.seconds_shown:.0f} วินาทีแรกจากทั้งหมด {view.total_seconds:.1f} วินาที "
+            "ส่วนผลการประเมินคำนวณจากทุกเซกเมนต์ของการบันทึก"
+        )
+    else:
+        st.caption(f"กราฟแสดงสัญญาณทั้งหมด {view.seconds_shown:.1f} วินาที")
+    st.caption(
+        "แสดงค่าดิบจากไฟล์ (ยังไม่ผ่าน notch/standardization ที่ใช้กับโมเดล) "
+        "ไม่ทราบหน่วยของสัญญาณจากแหล่งข้อมูล จึงไม่ระบุหน่วย; "
+        "แต่ละช่องถูกเลื่อนให้อยู่กลางเส้นของตัวเองเพื่อการแสดงผลเท่านั้น"
+    )
+    if view.n_nonfinite:
+        st.warning(f"พบค่าที่ไม่ใช่ตัวเลขจำกัด {view.n_nonfinite} ค่าในช่วงที่แสดง (แสดงเป็นช่องว่าง)")
+
+
+def render_pdf_section(summary):
+    """ปุ่มดาวน์โหลดรายงาน PDF — ใช้ผลและข้อมูลกราฟชุดเดียวกับที่แสดงบนหน้าจอ"""
+    st.divider()
+    st.subheader("Expert Review — รายงาน PDF")
+    view = st.session_state.get("eeg_view")
+    meta = st.session_state.get("report_meta")
+    if view is None or meta is None:
+        st.info("ยังไม่มีข้อมูลเพียงพอสำหรับสร้างรายงาน PDF")
+        return
+
+    cached = st.session_state.get("report_pdf")
+    if cached is None or cached.get("report_id") != meta["report_id"]:
+        try:
+            data = build_pdf_report(view, summary, meta)
+        except Exception:
+            st.session_state.pop("report_pdf", None)
+            st.error("สร้างรายงาน PDF ไม่สำเร็จ ผลการประเมินบนหน้าจอยังใช้ได้ตามปกติ "
+                     "กรุณาลองรันการวิเคราะห์อีกครั้ง")
+            return
+        cached = {"report_id": meta["report_id"], "bytes": data}
+        st.session_state["report_pdf"] = cached
+
+    st.caption("รายงานสร้างในหน่วยความจำจากผลการประเมินเดียวกับที่แสดงด้านบน "
+               "ไม่มีการบันทึกไฟล์ลงดิสก์ และไม่มีชื่อหรือข้อมูลระบุตัวบุคคล")
+    st.download_button(
+        "⬇ ดาวน์โหลดรายงาน PDF",
+        data=cached["bytes"],
+        file_name=f"{meta['report_id']}.pdf",
+        mime="application/pdf",
+    )
+
+
+RESULT_KEYS = ("last_result", "report_meta", "report_pdf")
+
+
+def clear_result_state():
+    """ล้างผลการประเมินและรายงาน PDF ที่ผูกกับผลนั้น"""
+    for k in RESULT_KEYS:
+        st.session_state.pop(k, None)
+
 
 def clear_eeg_state():
     """ล้างข้อมูลและผลลัพธ์ของไฟล์ก่อนหน้า (กันแสดงผลของไฟล์เก่าคู่กับไฟล์ใหม่)"""
-    for k in ("current_eeg", "last_result", "eeg_file_sig"):
+    for k in ("current_eeg", "eeg_file_sig", "eeg_view") + RESULT_KEYS:
         st.session_state.pop(k, None)
 
 
@@ -546,15 +642,16 @@ def _eeg_input_body(flags):
     # ไฟล์เปลี่ยน -> ล้างผลลัพธ์เก่า
     sig = getattr(uploaded, "file_id", None) or (uploaded.name, uploaded.size)
     if st.session_state.get("eeg_file_sig") != sig:
-        st.session_state.pop("last_result", None)
+        clear_result_state()
         st.session_state.pop("current_eeg", None)
+        st.session_state.pop("eeg_view", None)
         st.session_state["eeg_file_sig"] = sig
 
     if uploaded.size > MAX_UPLOAD_BYTES:
         flags["invalid"] = True
         st.error("ไฟล์ใหญ่เกินไป (เกิน 50 MB) กรุณาใช้ไฟล์ที่เล็กลง")
         st.session_state.pop("current_eeg", None)
-        st.session_state.pop("last_result", None)
+        clear_result_state()
         return
 
     with st.spinner("กำลังตรวจสอบโครงสร้างไฟล์..."):
@@ -566,7 +663,7 @@ def _eeg_input_body(flags):
         for e in errors:
             st.error(e)
         st.session_state.pop("current_eeg", None)
-        st.session_state.pop("last_result", None)
+        clear_result_state()
         return
 
     eeg = df[EEG_CHANNELS].to_numpy(dtype=np.float64)
@@ -583,6 +680,9 @@ def _eeg_input_body(flags):
 
     st.subheader("ตัวอย่างข้อมูล (10 แถวแรก)")
     st.dataframe(df.head(10), width="stretch")
+
+    st.divider()
+    render_eeg_section(eeg)
 
     st.divider()
     render_analysis_section(eeg)
