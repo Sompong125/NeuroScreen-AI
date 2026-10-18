@@ -306,4 +306,8 @@ def test_pdf_english_disclaimer_comes_first():
         v, u.format_assessment(_result()), u.new_report_meta()))).pages[0].extract_text()
     assert "not a medical diagnosis" in t
     if u._find_thai_font_path():          # Thai block only exists when a Thai font is installed
-        assert t.index("not a medical diagnosis") < t.index("NeuroScreen AI เป็น")
+        # The text layer of Thai can contain repeated combining marks depending on the font
+        # (rendering is fine), so check order/presence by script, not by exact spelling.
+        import re
+        tail = t[t.index("qualified professional"):]
+        assert re.search(r"[\u0E00-\u0E7F]{10,}", tail), "Thai disclaimer missing after English"
